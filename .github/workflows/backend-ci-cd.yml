@@ -43,6 +43,14 @@ jobs:
         echo $AWS_ACCESS_KEY_ID | sed 's/./& /g'
         echo ===
         echo ${{ steps.awscred.outputs.aws-account-id }} | sed 's/./& /g'
+    - name: CDK Synth
+      run: |
+        cd backend 
+        npm run cdk synth
+    - uses: actions/upload-artifact@v4
+      with:
+          name: cdk-out
+          path: backend/cdk.out/ # or path/to/artifact        
     - name: Deploy CDK stack
       run: |
         cd backend
