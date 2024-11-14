@@ -19,7 +19,8 @@ At the end of the 10 challenges, the user will be able to see a result of his ch
 The backend of the code is written in Typescript and uses AWS CDKv2 for infrastructure as code.  It is stored in the "backend" directory.
 It also includes a GraphQL endpoint and schema that can be used by the client application. The authentication for the API is handled through Cognito.
 The API allows to change user settings, but it also stores events of the user, like "game started" and "solved math challenges" and all information related to a math challenge.
-The frontend of the application is hosted on CloudFront and S3 and is written in Flutter. It uses Amplify Flutter as a library to access the backend services (like GraphQL and Cognito).
+The frontend of the application is hosted on CloudFront and S3 and is written in Flutter. It uses Amplify Flutter as a library to access the backend services (like GraphQL and Cognito). Potentially you can get some help from this example for the animations: https://github.com/flutter/games/tree/main/templates/endless_runner
+The Flutter application supports the platforms iOS, Android and Web.
 Both backend and frontend contain everything that they need to work - so both include infrastructure as code.
 
 ## CI/CD
