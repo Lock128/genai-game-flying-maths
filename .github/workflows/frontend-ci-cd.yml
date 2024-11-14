@@ -40,7 +40,7 @@ jobs:
         cd cdk
         npm ci
         aws sts get-caller-identity
-        npm run cdk -- deploy FlyingMathsFrontendStack --require-approval never --verboses
+        npm run cdk -- deploy FlyingMathsFrontendStack --require-approval never --verbose
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
