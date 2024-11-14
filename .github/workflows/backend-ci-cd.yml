@@ -25,7 +25,13 @@ jobs:
     - name: Run tests
       run: cd backend && NODE_OPTIONS=--max_old_space_size=4096 npm test
     - name: Build
-      run: cd backend && npm run build      
+      run: cd backend && npm run build    
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}        
     - name: Deploy CDK stack
       run: |
         cd backend
