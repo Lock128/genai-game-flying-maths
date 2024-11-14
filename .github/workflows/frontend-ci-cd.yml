@@ -37,6 +37,8 @@ jobs:
         cd frontend
         cd cdk
         npm ci
+        cdk doctor
+        aws sts get-caller-identity
         aws configure list
         npm run cdk -- deploy FlyingMathsFrontendStack --require-approval never
       env:
