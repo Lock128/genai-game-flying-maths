@@ -38,7 +38,11 @@ jobs:
         npm install -g aws-cdk
         npm ci
         npm run cdk -- deploy FlyingMathsBackendStack --require-approval never
+      env:
+        AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
     - name: Deploy Lambda functions
       run: |
         cd backend
         npm run cdk -- deploy --require-approval never
+      env:
+        AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
