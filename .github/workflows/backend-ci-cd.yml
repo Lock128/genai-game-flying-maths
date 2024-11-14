@@ -41,19 +41,22 @@ jobs:
         echo ${{join(steps.awscred.outputs.*, '\n')}}  
         aws sts get-caller-identity --query "Account" --output text | sed 's/./& /g'
         echo $AWS_ACCESS_KEY_ID | sed 's/./& /g'
+        echo ===
+        echo ${{ steps.awscred.outputs.aws-account-id }} | sed 's/./& /g'
     - name: Deploy CDK stack
       run: |
         cd backend
         npm ci
         npm run cdk doctor
         aws configure list
+        echo $CDK_DEFAULT_ACCOUNT | sed 's/./& /g'
         npm run cdk -- deploy FlyingMathsBackendStack --require-approval never
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         AWS_REGION: ${{ secrets.AWS_REGION }}
-        CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
+        CDK_DEFAULT_ACCOUNT: ${{ steps.awscred.outputs.aws-account-id }}
         CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
     - name: Deploy Lambda functions
       run: |
