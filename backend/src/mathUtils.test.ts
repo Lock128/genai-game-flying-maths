@@ -2,13 +2,23 @@ import { generateMathProblem, checkAnswer } from './mathUtils';
 
 describe('mathUtils', () => {
   describe('generateMathProblem', () => {
-    test('generates a problem with the correct difficulty', () => {
+    test('generates a problem with the correct difficulty - easy', () => {
       const easyProblem = generateMathProblem('easy');
-      const mediumProblem = generateMathProblem('medium');
-      const hardProblem = generateMathProblem('hard');
 
       expect(easyProblem.problem).toBeDefined();
+
+    });
+
+    test('generates a problem with the correct difficulty - medium', () => {
+      const mediumProblem = generateMathProblem('medium');
+
       expect(mediumProblem.problem).toBeDefined();
+    });
+
+    test('generates a problem with the correct difficulty', () => {
+     
+      const hardProblem = generateMathProblem('hard');
+
       expect(hardProblem.problem).toBeDefined();
     });
 
