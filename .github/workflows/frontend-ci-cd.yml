@@ -41,6 +41,8 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         AWS_REGION: ${{ secrets.AWS_REGION }}
+        CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
+        CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
     - name: Get S3 bucket name
       id: get_bucket
       run: |
@@ -53,6 +55,8 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         AWS_REGION: ${{ secrets.AWS_REGION }}
+        CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
+        CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
     - name: Deploy to S3
       run: |
         aws s3 sync frontend/build/web s3://${{ steps.get_bucket.outputs.BUCKET_NAME }} --delete
@@ -61,6 +65,8 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         AWS_REGION: ${{ secrets.AWS_REGION }}
+        CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
+        CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
     - name: Invalidate CloudFront
       run: |
         aws cloudfront create-invalidation --distribution-id ${{ steps.get_bucket.outputs.DISTRIBUTION_ID }} --paths "/*"
@@ -69,3 +75,5 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         AWS_REGION: ${{ secrets.AWS_REGION }}
+        CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT_ID }}
+        CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
