@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flying_maths/main.dart';
 
 void main() {
   testWidgets('Flying Maths has a title and start button', (WidgetTester tester) async {

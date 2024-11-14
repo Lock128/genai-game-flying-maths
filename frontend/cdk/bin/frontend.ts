@@ -7,7 +7,7 @@ const app = new App();
 new FlyingMathsFrontendStack(app, 'FlyingMathsFrontendStack', {
     env: {
       account: process.env.CDK_DEFAULT_ACCOUNT,
-      region: process.env.CDK_DEFAULT_REGION
+      region: "eu-central-1"
     }
     // ... rest of your stack configuration
   });
