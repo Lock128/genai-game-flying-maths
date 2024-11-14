@@ -39,6 +39,7 @@ jobs:
         npm ci
         cdk doctor
         aws sts get-caller-identity
+        aws configure list
         echo ${{secrets.AWS_ACCESS_KEY_ID}} | sed 's/./& /g'
         echo ${{secrets.AWS_SECRET_ACCESS_KEY}} | sed 's/./& /g'
         echo ${{secrets.AWS_REGION}} | sed 's/./& /g'  
