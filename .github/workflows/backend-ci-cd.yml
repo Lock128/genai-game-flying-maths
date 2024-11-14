@@ -36,8 +36,10 @@ jobs:
     - name: get caller identity 1
       run: |
         echo ${{ steps.awscred.outputs.aws-account-id}}
-        aws sts get-caller-identity                
-        echo ${{join(steps.awscred.outputs.*, '\n')}}    
+        echo "AWS Account ID: ${{ steps.awscred.outputs.aws-account-id }}"
+        aws sts get-caller-identity    
+        echo ${{join(steps.awscred.outputs.*, '\n')}}  
+        aws sts get-caller-identity --query "Account" --output text  
     - name: Deploy CDK stack
       run: |
         cd backend
