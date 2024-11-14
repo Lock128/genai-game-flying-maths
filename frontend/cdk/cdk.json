@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node bin/pegasus-game-frontend.ts",
+  "app": "npx ts-node bin/frontend.ts",
   "watch": {
     "include": [
       "**"
