@@ -25,6 +25,7 @@ jobs:
     - name: Build
       run: cd backend && npm run build    
     - name: Configure AWS credentials
+      id: awscred
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -34,7 +35,9 @@ jobs:
         mask-aws-account-id: false
     - name: get caller identity 1
       run: |
-        aws sts get-caller-identity                    
+        echo ${{ steps.awscred.outputs.aws-account-id}}
+        aws sts get-caller-identity                
+        echo ${{join(steps.awscred.outputs.*, '\n')}}    
     - name: Deploy CDK stack
       run: |
         cd backend
