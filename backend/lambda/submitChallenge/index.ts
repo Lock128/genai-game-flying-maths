@@ -26,6 +26,13 @@ exports.handler = async (event: any) => {
     const result = await dynamoDB.update(params).promise();
     const game = result.Attributes;
     
+    // Add null check before accessing game properties
+    if (!game) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ message: 'Game not found' })
+      };
+    }
     const challenge = game.challenges.find((c: any) => c.id === challengeId);
     const isCorrect = challenge.correctAnswer === answer;
 

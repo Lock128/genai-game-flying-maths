@@ -22,6 +22,13 @@ exports.handler = async (event: any) => {
     const result = await dynamoDB.update(params).promise();
     const game = result.Attributes;
 
+    // Add null check before accessing game properties
+    if (!game) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ message: 'Game not found' })
+      };
+    }
     const totalChallenges = game.challenges.length;
     const correctAnswers = game.challenges.filter((c: any) => c.correctAnswer === c.userAnswer).length;
     const completionTime = Math.floor((new Date(game.endTime).getTime() - new Date(game.startTime).getTime()) / 1000);

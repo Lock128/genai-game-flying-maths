@@ -109,6 +109,10 @@ class FlyingMathsBackendStack extends cdk.Stack {
     userProfileTable.grantReadData(startGameLambda);
     gamesTable.grantReadWriteData(startGameLambda);
     gamesTable.grantReadWriteData(submitChallengeLambda);
+    gamesTable.grantReadData(getGameResultLambda);
+    gamesTable.grantReadWriteData(endGameLambda);
+    leaderboardTable.grantReadWriteData(endGameLambda);
+    leaderboardTable.grantReadData(getLeaderboardLambda);
 
     // AppSync API
     const api = new appsync.GraphqlApi(this, 'FlyingMathsApi', {
@@ -117,7 +121,9 @@ class FlyingMathsBackendStack extends cdk.Stack {
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: appsync.AuthorizationType.USER_POOL,
-          userPoolConfig: { userPool },
+          userPoolConfig: {
+            userPool,
+          },
         },
       },
     });
@@ -131,32 +137,32 @@ class FlyingMathsBackendStack extends cdk.Stack {
     const getLeaderboardDS = api.addLambdaDataSource('GetLeaderboardDataSource', getLeaderboardLambda);
 
     // AppSync Resolvers
-    updateUserProfileDS.createResolver({
+    updateUserProfileDS.createResolver('updateUserProfile', {
       typeName: 'Mutation',
       fieldName: 'updateUserProfile',
     });
 
-    startGameDS.createResolver({
+    startGameDS.createResolver('startGame', {
       typeName: 'Mutation',
       fieldName: 'startGame',
     });
 
-    submitChallengeDS.createResolver({
+    submitChallengeDS.createResolver('submitChallenge', {
       typeName: 'Mutation',
       fieldName: 'submitChallenge',
     });
 
-    endGameDS.createResolver({
+    endGameDS.createResolver('endGame', {
       typeName: 'Mutation',
       fieldName: 'endGame',
     });
 
-    getGameResultDS.createResolver({
+    getGameResultDS.createResolver('getGameResult', {
       typeName: 'Query',
       fieldName: 'getGameResult',
     });
 
-    getLeaderboardDS.createResolver({
+    getLeaderboardDS.createResolver('getLeaderboard', {
       typeName: 'Query',
       fieldName: 'getLeaderboard',
     });
