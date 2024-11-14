@@ -1,0 +1,51 @@
+type User {
+  id: ID!
+  email: String!
+  username: String!
+  language: String
+  grade: Int
+}
+
+type Challenge {
+  id: ID!
+  problem: String!
+  correctAnswer: Int!
+}
+
+type Game {
+  id: ID!
+  userId: ID!
+  startTime: AWSDateTime!
+  challenges: [Challenge!]!
+}
+
+type GameResult {
+  gameId: ID!
+  userId: ID!
+  totalChallenges: Int!
+  correctAnswers: Int!
+  completionTime: Int!
+}
+
+input UpdateUserProfileInput {
+  language: String
+  grade: Int
+}
+
+type Mutation {
+  updateUserProfile(input: UpdateUserProfileInput!): User!
+  startGame: Game!
+  submitChallenge(gameId: ID!, challengeId: ID!, answer: Int!): Boolean!
+  endGame(gameId: ID!): GameResult!
+}
+
+type Query {
+  getUser: User!
+  getGameResult(gameId: ID!): GameResult!
+  getLeaderboard(limit: Int): [GameResult!]!
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}
