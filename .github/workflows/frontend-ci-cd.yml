@@ -30,16 +30,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-    - name: Install CDK
-      run: npm install -g aws-cdk
     - name: Deploy Frontend Stack
       run: |
         cd frontend
         cd cdk
         npm ci
-        cdk doctor
-        aws sts get-caller-identity
-        aws configure list
         npm run cdk -- deploy FlyingMathsFrontendStack --require-approval never
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
