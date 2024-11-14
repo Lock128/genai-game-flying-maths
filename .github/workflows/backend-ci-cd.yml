@@ -31,6 +31,7 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}    
         output-credentials: true
+        mask-aws-account-id: false
     - name: get caller identity 1
       run: |
         aws sts get-caller-identity                    
