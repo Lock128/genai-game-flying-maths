@@ -5,7 +5,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 
-class FlyingMathsBackendStack extends cdk.Stack {
+export default class FlyingMathsBackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -173,6 +173,3 @@ class FlyingMathsBackendStack extends cdk.Stack {
   }
 }
 
-const app = new cdk.App();
-new FlyingMathsBackendStack(app, 'FlyingMathsBackendStack');
-app.synth();
