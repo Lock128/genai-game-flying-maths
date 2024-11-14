@@ -1,0 +1,1980 @@
+{
+ "Resources": {
+  "FlyingMathsUserPool8EAFC5B0": {
+   "Type": "AWS::Cognito::UserPool",
+   "Properties": {
+    "AccountRecoverySetting": {
+     "RecoveryMechanisms": [
+      {
+       "Name": "verified_phone_number",
+       "Priority": 1
+      },
+      {
+       "Name": "verified_email",
+       "Priority": 2
+      }
+     ]
+    },
+    "AdminCreateUserConfig": {
+     "AllowAdminCreateUserOnly": false
+    },
+    "AutoVerifiedAttributes": [
+     "email"
+    ],
+    "EmailVerificationMessage": "The verification code to your new account is {####}",
+    "EmailVerificationSubject": "Verify your new account",
+    "Schema": [
+     {
+      "Mutable": true,
+      "Name": "email",
+      "Required": true
+     },
+     {
+      "AttributeDataType": "String",
+      "Mutable": true,
+      "Name": "language"
+     },
+     {
+      "AttributeDataType": "Number",
+      "Mutable": true,
+      "Name": "grade"
+     }
+    ],
+    "SmsVerificationMessage": "The verification code to your new account is {####}",
+    "UsernameAttributes": [
+     "email"
+    ],
+    "VerificationMessageTemplate": {
+     "DefaultEmailOption": "CONFIRM_WITH_CODE",
+     "EmailMessage": "The verification code to your new account is {####}",
+     "EmailSubject": "Verify your new account",
+     "SmsMessage": "The verification code to your new account is {####}"
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsUserPool/Resource"
+   }
+  },
+  "UserProfileTable61BB5480": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "userId",
+      "AttributeType": "S"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "KeySchema": [
+     {
+      "AttributeName": "userId",
+      "KeyType": "HASH"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/UserProfileTable/Resource"
+   }
+  },
+  "GamesTableB32AB610": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "id",
+      "AttributeType": "S"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "KeySchema": [
+     {
+      "AttributeName": "id",
+      "KeyType": "HASH"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/GamesTable/Resource"
+   }
+  },
+  "LeaderboardTableD83EA9BE": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "gameId",
+      "AttributeType": "S"
+     },
+     {
+      "AttributeName": "completionTime",
+      "AttributeType": "N"
+     },
+     {
+      "AttributeName": "dummy",
+      "AttributeType": "N"
+     },
+     {
+      "AttributeName": "correctAnswers",
+      "AttributeType": "N"
+     }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "GlobalSecondaryIndexes": [
+     {
+      "IndexName": "ByScore",
+      "KeySchema": [
+       {
+        "AttributeName": "dummy",
+        "KeyType": "HASH"
+       },
+       {
+        "AttributeName": "correctAnswers",
+        "KeyType": "RANGE"
+       }
+      ],
+      "Projection": {
+       "ProjectionType": "ALL"
+      }
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "gameId",
+      "KeyType": "HASH"
+     },
+     {
+      "AttributeName": "completionTime",
+      "KeyType": "RANGE"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/LeaderboardTable/Resource"
+   }
+  },
+  "UpdateUserProfileLambdaServiceRole798FA4AB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/UpdateUserProfileLambda/ServiceRole/Resource"
+   }
+  },
+  "UpdateUserProfileLambdaServiceRoleDefaultPolicyCFCAFFF7": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "UserProfileTable61BB5480",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "UpdateUserProfileLambdaServiceRoleDefaultPolicyCFCAFFF7",
+    "Roles": [
+     {
+      "Ref": "UpdateUserProfileLambdaServiceRole798FA4AB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/UpdateUserProfileLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "UpdateUserProfileLambda9C601270": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "da7d9376facf627cdfc1cd75f641a113352b357fa0a6f8592a8e57bdc046150b.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "USER_PROFILE_TABLE": {
+       "Ref": "UserProfileTable61BB5480"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "UpdateUserProfileLambdaServiceRole798FA4AB",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x"
+   },
+   "DependsOn": [
+    "UpdateUserProfileLambdaServiceRoleDefaultPolicyCFCAFFF7",
+    "UpdateUserProfileLambdaServiceRole798FA4AB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/UpdateUserProfileLambda/Resource",
+    "aws:asset:path": "asset.da7d9376facf627cdfc1cd75f641a113352b357fa0a6f8592a8e57bdc046150b",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "StartGameLambdaServiceRoleBF5B8CF3": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/StartGameLambda/ServiceRole/Resource"
+   }
+  },
+  "StartGameLambdaServiceRoleDefaultPolicy848E9792": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "UserProfileTable61BB5480",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      },
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "GamesTableB32AB610",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "StartGameLambdaServiceRoleDefaultPolicy848E9792",
+    "Roles": [
+     {
+      "Ref": "StartGameLambdaServiceRoleBF5B8CF3"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/StartGameLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "StartGameLambdaCB1287BB": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "d2fe10820780eba93d7abb7c3035dc2af484e89d54d045428ecf05a9e26ab3c8.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "USER_PROFILE_TABLE": {
+       "Ref": "UserProfileTable61BB5480"
+      },
+      "GAMES_TABLE": {
+       "Ref": "GamesTableB32AB610"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "StartGameLambdaServiceRoleBF5B8CF3",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x"
+   },
+   "DependsOn": [
+    "StartGameLambdaServiceRoleDefaultPolicy848E9792",
+    "StartGameLambdaServiceRoleBF5B8CF3"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/StartGameLambda/Resource",
+    "aws:asset:path": "asset.d2fe10820780eba93d7abb7c3035dc2af484e89d54d045428ecf05a9e26ab3c8",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "SubmitChallengeLambdaServiceRole38A4155F": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/SubmitChallengeLambda/ServiceRole/Resource"
+   }
+  },
+  "SubmitChallengeLambdaServiceRoleDefaultPolicyB6EF6DFC": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "GamesTableB32AB610",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "SubmitChallengeLambdaServiceRoleDefaultPolicyB6EF6DFC",
+    "Roles": [
+     {
+      "Ref": "SubmitChallengeLambdaServiceRole38A4155F"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/SubmitChallengeLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "SubmitChallengeLambda71369ACB": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "7d49642c89c751115f08c1d2988f679b87db1a8dccff822c5744f346fa8775e1.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "GAMES_TABLE": {
+       "Ref": "GamesTableB32AB610"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "SubmitChallengeLambdaServiceRole38A4155F",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x"
+   },
+   "DependsOn": [
+    "SubmitChallengeLambdaServiceRoleDefaultPolicyB6EF6DFC",
+    "SubmitChallengeLambdaServiceRole38A4155F"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/SubmitChallengeLambda/Resource",
+    "aws:asset:path": "asset.7d49642c89c751115f08c1d2988f679b87db1a8dccff822c5744f346fa8775e1",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "GetGameResultLambdaServiceRole38B90B91": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/GetGameResultLambda/ServiceRole/Resource"
+   }
+  },
+  "GetGameResultLambdaServiceRoleDefaultPolicy561C896E": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "GamesTableB32AB610",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GetGameResultLambdaServiceRoleDefaultPolicy561C896E",
+    "Roles": [
+     {
+      "Ref": "GetGameResultLambdaServiceRole38B90B91"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/GetGameResultLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "GetGameResultLambda8EC4B43B": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "e472197f2026181b7f2804224a9f8c4b26d335d57312d3e44ab5505991316771.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "GAMES_TABLE": {
+       "Ref": "GamesTableB32AB610"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "GetGameResultLambdaServiceRole38B90B91",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x"
+   },
+   "DependsOn": [
+    "GetGameResultLambdaServiceRoleDefaultPolicy561C896E",
+    "GetGameResultLambdaServiceRole38B90B91"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/GetGameResultLambda/Resource",
+    "aws:asset:path": "asset.e472197f2026181b7f2804224a9f8c4b26d335d57312d3e44ab5505991316771",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "EndGameLambdaServiceRole25BA3AD2": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/EndGameLambda/ServiceRole/Resource"
+   }
+  },
+  "EndGameLambdaServiceRoleDefaultPolicy97CC8163": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "GamesTableB32AB610",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::GetAtt": [
+          "LeaderboardTableD83EA9BE",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LeaderboardTableD83EA9BE",
+             "Arn"
+            ]
+           },
+           "/index/*"
+          ]
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "EndGameLambdaServiceRoleDefaultPolicy97CC8163",
+    "Roles": [
+     {
+      "Ref": "EndGameLambdaServiceRole25BA3AD2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/EndGameLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "EndGameLambda5452C3C2": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "665f9ac0826b1bfc46370d322cee531126015e5dfa16fbc988099f295e322d57.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "GAMES_TABLE": {
+       "Ref": "GamesTableB32AB610"
+      },
+      "LEADERBOARD_TABLE": {
+       "Ref": "LeaderboardTableD83EA9BE"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "EndGameLambdaServiceRole25BA3AD2",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x"
+   },
+   "DependsOn": [
+    "EndGameLambdaServiceRoleDefaultPolicy97CC8163",
+    "EndGameLambdaServiceRole25BA3AD2"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/EndGameLambda/Resource",
+    "aws:asset:path": "asset.665f9ac0826b1bfc46370d322cee531126015e5dfa16fbc988099f295e322d57",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "GetLeaderboardLambdaServiceRole48538B66": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/GetLeaderboardLambda/ServiceRole/Resource"
+   }
+  },
+  "GetLeaderboardLambdaServiceRoleDefaultPolicyDE3F2159": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "LeaderboardTableD83EA9BE",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "LeaderboardTableD83EA9BE",
+             "Arn"
+            ]
+           },
+           "/index/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "GetLeaderboardLambdaServiceRoleDefaultPolicyDE3F2159",
+    "Roles": [
+     {
+      "Ref": "GetLeaderboardLambdaServiceRole48538B66"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/GetLeaderboardLambda/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "GetLeaderboardLambda3ED41B44": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "b19a136a529a31d84094b4fff32f8c83460a6dcb8420983f47fed1341f410a0a.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "LEADERBOARD_TABLE": {
+       "Ref": "LeaderboardTableD83EA9BE"
+      }
+     }
+    },
+    "Handler": "index.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "GetLeaderboardLambdaServiceRole48538B66",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs18.x"
+   },
+   "DependsOn": [
+    "GetLeaderboardLambdaServiceRoleDefaultPolicyDE3F2159",
+    "GetLeaderboardLambdaServiceRole48538B66"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/GetLeaderboardLambda/Resource",
+    "aws:asset:path": "asset.b19a136a529a31d84094b4fff32f8c83460a6dcb8420983f47fed1341f410a0a",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "FlyingMathsApiF965CC93": {
+   "Type": "AWS::AppSync::GraphQLApi",
+   "Properties": {
+    "AuthenticationType": "AMAZON_COGNITO_USER_POOLS",
+    "Name": "flying-maths-api",
+    "UserPoolConfig": {
+     "AwsRegion": {
+      "Ref": "AWS::Region"
+     },
+     "DefaultAction": "ALLOW",
+     "UserPoolId": {
+      "Ref": "FlyingMathsUserPool8EAFC5B0"
+     }
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/Resource"
+   }
+  },
+  "FlyingMathsApiSchemaA486E608": {
+   "Type": "AWS::AppSync::GraphQLSchema",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "Definition": "type User {\n  id: ID!\n  email: String!\n  username: String!\n  language: String\n  grade: Int\n}\n\ntype Challenge {\n  id: ID!\n  problem: String!\n  correctAnswer: Int!\n}\n\ntype Game {\n  id: ID!\n  userId: ID!\n  startTime: AWSDateTime!\n  challenges: [Challenge!]!\n}\n\ntype GameResult {\n  gameId: ID!\n  userId: ID!\n  totalChallenges: Int!\n  correctAnswers: Int!\n  completionTime: Int!\n}\n\ninput UpdateUserProfileInput {\n  language: String\n  grade: Int\n}\n\ntype Mutation {\n  updateUserProfile(input: UpdateUserProfileInput!): User!\n  startGame: Game!\n  submitChallenge(gameId: ID!, challengeId: ID!, answer: Int!): Boolean!\n  endGame(gameId: ID!): GameResult!\n}\n\ntype Query {\n  getUser: User!\n  getGameResult(gameId: ID!): GameResult!\n  getLeaderboard(limit: Int): [GameResult!]!\n}\n\nschema {\n  query: Query\n  mutation: Mutation\n}"
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/Schema"
+   }
+  },
+  "FlyingMathsApiUpdateUserProfileDataSourceServiceRole8503B512": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "appsync.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/UpdateUserProfileDataSource/ServiceRole/Resource"
+   }
+  },
+  "FlyingMathsApiUpdateUserProfileDataSourceServiceRoleDefaultPolicyDB466330": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "UpdateUserProfileLambda9C601270",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "UpdateUserProfileLambda9C601270",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "FlyingMathsApiUpdateUserProfileDataSourceServiceRoleDefaultPolicyDB466330",
+    "Roles": [
+     {
+      "Ref": "FlyingMathsApiUpdateUserProfileDataSourceServiceRole8503B512"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/UpdateUserProfileDataSource/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "FlyingMathsApiUpdateUserProfileDataSource15D89C8E": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::GetAtt": [
+       "UpdateUserProfileLambda9C601270",
+       "Arn"
+      ]
+     }
+    },
+    "Name": "UpdateUserProfileDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiUpdateUserProfileDataSourceServiceRole8503B512",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/UpdateUserProfileDataSource/Resource"
+   }
+  },
+  "FlyingMathsApiStartGameDataSourceServiceRole25CACE19": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "appsync.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/StartGameDataSource/ServiceRole/Resource"
+   }
+  },
+  "FlyingMathsApiStartGameDataSourceServiceRoleDefaultPolicyAC7F7CB4": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "StartGameLambdaCB1287BB",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "StartGameLambdaCB1287BB",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "FlyingMathsApiStartGameDataSourceServiceRoleDefaultPolicyAC7F7CB4",
+    "Roles": [
+     {
+      "Ref": "FlyingMathsApiStartGameDataSourceServiceRole25CACE19"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/StartGameDataSource/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "FlyingMathsApiStartGameDataSource79DBD62D": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::GetAtt": [
+       "StartGameLambdaCB1287BB",
+       "Arn"
+      ]
+     }
+    },
+    "Name": "StartGameDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiStartGameDataSourceServiceRole25CACE19",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/StartGameDataSource/Resource"
+   }
+  },
+  "FlyingMathsApiSubmitChallengeDataSourceServiceRoleC8AA8666": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "appsync.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/SubmitChallengeDataSource/ServiceRole/Resource"
+   }
+  },
+  "FlyingMathsApiSubmitChallengeDataSourceServiceRoleDefaultPolicy724F34C8": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "SubmitChallengeLambda71369ACB",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "SubmitChallengeLambda71369ACB",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "FlyingMathsApiSubmitChallengeDataSourceServiceRoleDefaultPolicy724F34C8",
+    "Roles": [
+     {
+      "Ref": "FlyingMathsApiSubmitChallengeDataSourceServiceRoleC8AA8666"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/SubmitChallengeDataSource/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "FlyingMathsApiSubmitChallengeDataSourceBE25E1D8": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::GetAtt": [
+       "SubmitChallengeLambda71369ACB",
+       "Arn"
+      ]
+     }
+    },
+    "Name": "SubmitChallengeDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiSubmitChallengeDataSourceServiceRoleC8AA8666",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/SubmitChallengeDataSource/Resource"
+   }
+  },
+  "FlyingMathsApiGetGameResultDataSourceServiceRoleF4C40F61": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "appsync.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/GetGameResultDataSource/ServiceRole/Resource"
+   }
+  },
+  "FlyingMathsApiGetGameResultDataSourceServiceRoleDefaultPolicyD495DC2A": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "GetGameResultLambda8EC4B43B",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "GetGameResultLambda8EC4B43B",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "FlyingMathsApiGetGameResultDataSourceServiceRoleDefaultPolicyD495DC2A",
+    "Roles": [
+     {
+      "Ref": "FlyingMathsApiGetGameResultDataSourceServiceRoleF4C40F61"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/GetGameResultDataSource/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "FlyingMathsApiGetGameResultDataSourceBC1382DE": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::GetAtt": [
+       "GetGameResultLambda8EC4B43B",
+       "Arn"
+      ]
+     }
+    },
+    "Name": "GetGameResultDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiGetGameResultDataSourceServiceRoleF4C40F61",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/GetGameResultDataSource/Resource"
+   }
+  },
+  "FlyingMathsApiEndGameDataSourceServiceRole941A3EE5": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "appsync.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/EndGameDataSource/ServiceRole/Resource"
+   }
+  },
+  "FlyingMathsApiEndGameDataSourceServiceRoleDefaultPolicyBA5086FD": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "EndGameLambda5452C3C2",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "EndGameLambda5452C3C2",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "FlyingMathsApiEndGameDataSourceServiceRoleDefaultPolicyBA5086FD",
+    "Roles": [
+     {
+      "Ref": "FlyingMathsApiEndGameDataSourceServiceRole941A3EE5"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/EndGameDataSource/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "FlyingMathsApiEndGameDataSource0390C42D": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::GetAtt": [
+       "EndGameLambda5452C3C2",
+       "Arn"
+      ]
+     }
+    },
+    "Name": "EndGameDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiEndGameDataSourceServiceRole941A3EE5",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/EndGameDataSource/Resource"
+   }
+  },
+  "FlyingMathsApiGetLeaderboardDataSourceServiceRole716DA843": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "appsync.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/GetLeaderboardDataSource/ServiceRole/Resource"
+   }
+  },
+  "FlyingMathsApiGetLeaderboardDataSourceServiceRoleDefaultPolicyC1C9C8D9": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "GetLeaderboardLambda3ED41B44",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "GetLeaderboardLambda3ED41B44",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "FlyingMathsApiGetLeaderboardDataSourceServiceRoleDefaultPolicyC1C9C8D9",
+    "Roles": [
+     {
+      "Ref": "FlyingMathsApiGetLeaderboardDataSourceServiceRole716DA843"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/GetLeaderboardDataSource/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "FlyingMathsApiGetLeaderboardDataSource908E668C": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "LambdaConfig": {
+     "LambdaFunctionArn": {
+      "Fn::GetAtt": [
+       "GetLeaderboardLambda3ED41B44",
+       "Arn"
+      ]
+     }
+    },
+    "Name": "GetLeaderboardDataSource",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiGetLeaderboardDataSourceServiceRole716DA843",
+      "Arn"
+     ]
+    },
+    "Type": "AWS_LAMBDA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/GetLeaderboardDataSource/Resource"
+   }
+  },
+  "FlyingMathsApiupdateUserProfile0F45C7A9": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "UpdateUserProfileDataSource",
+    "FieldName": "updateUserProfile",
+    "Kind": "UNIT",
+    "TypeName": "Mutation"
+   },
+   "DependsOn": [
+    "FlyingMathsApiSchemaA486E608",
+    "FlyingMathsApiUpdateUserProfileDataSource15D89C8E"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/updateUserProfile/Resource"
+   }
+  },
+  "FlyingMathsApistartGame8229C33C": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "StartGameDataSource",
+    "FieldName": "startGame",
+    "Kind": "UNIT",
+    "TypeName": "Mutation"
+   },
+   "DependsOn": [
+    "FlyingMathsApiSchemaA486E608",
+    "FlyingMathsApiStartGameDataSource79DBD62D"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/startGame/Resource"
+   }
+  },
+  "FlyingMathsApisubmitChallenge159549B5": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "SubmitChallengeDataSource",
+    "FieldName": "submitChallenge",
+    "Kind": "UNIT",
+    "TypeName": "Mutation"
+   },
+   "DependsOn": [
+    "FlyingMathsApiSchemaA486E608",
+    "FlyingMathsApiSubmitChallengeDataSourceBE25E1D8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/submitChallenge/Resource"
+   }
+  },
+  "FlyingMathsApiendGame8116C33E": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "EndGameDataSource",
+    "FieldName": "endGame",
+    "Kind": "UNIT",
+    "TypeName": "Mutation"
+   },
+   "DependsOn": [
+    "FlyingMathsApiEndGameDataSource0390C42D",
+    "FlyingMathsApiSchemaA486E608"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/endGame/Resource"
+   }
+  },
+  "FlyingMathsApigetGameResult57AFE1E2": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "GetGameResultDataSource",
+    "FieldName": "getGameResult",
+    "Kind": "UNIT",
+    "TypeName": "Query"
+   },
+   "DependsOn": [
+    "FlyingMathsApiGetGameResultDataSourceBC1382DE",
+    "FlyingMathsApiSchemaA486E608"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/getGameResult/Resource"
+   }
+  },
+  "FlyingMathsApigetLeaderboardEC9CC864": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Fn::GetAtt": [
+      "FlyingMathsApiF965CC93",
+      "ApiId"
+     ]
+    },
+    "DataSourceName": "GetLeaderboardDataSource",
+    "FieldName": "getLeaderboard",
+    "Kind": "UNIT",
+    "TypeName": "Query"
+   },
+   "DependsOn": [
+    "FlyingMathsApiGetLeaderboardDataSource908E668C",
+    "FlyingMathsApiSchemaA486E608"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/FlyingMathsApi/getLeaderboard/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1VQwVLDIBT8lt7Js62jnts6eumMNdFz5xVoSkN4MUCdDMO/G4iZ0dPuvn0LC2tYPT7BcoHftuCiKbQ6Qagc8oaNo2PgVBvlCMKnlf2BSLPd2cw8MjEYbEmMmQ88aZnMTCLT2J4EQnjxhjtFJlkzj0xhC6GkKZHxQFrxIcmJRWbvj2itdBY2CUYNW88b6bZoJcOus4PhEF577C5fetOpFM7qff9fVfwiW2T7XOkZHVbke57v/qNKaUnfZJ8r/fIY8zj7ucX4NbUyddp5867zbt6eD9yREWp6pCEh4WrvbuslPMBqcbVKFb03TrUSygl/AEt3nWCAAQAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "FlyingMathsBackendStack/CDKMetadata/Default"
+   },
+   "Condition": "CDKMetadataAvailable"
+  }
+ },
+ "Outputs": {
+  "UserPoolId": {
+   "Value": {
+    "Ref": "FlyingMathsUserPool8EAFC5B0"
+   }
+  },
+  "GraphQLApiUrl": {
+   "Value": {
+    "Fn::GetAtt": [
+     "FlyingMathsApiF965CC93",
+     "GraphQLUrl"
+    ]
+   }
+  }
+ },
+ "Conditions": {
+  "CDKMetadataAvailable": {
+   "Fn::Or": [
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "af-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-3"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-4"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-northwest-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-2"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "il-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "sa-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Equals": [
+      {
+       "Ref": "AWS::Region"
+      },
+      "us-west-2"
+     ]
+    }
+   ]
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}
