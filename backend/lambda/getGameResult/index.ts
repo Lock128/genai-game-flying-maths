@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, UpdateCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, UpdateCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({});
 const dynamoDB = DynamoDBDocumentClient.from(client);
@@ -19,7 +19,7 @@ exports.handler = async (event: any) => {
   };
 
   try {
-    const result = await dynamoDB.get(params).promise();
+    const result = await dynamoDB.send(new GetCommand(params));
     const game = result.Item;
 
     if (!game) {

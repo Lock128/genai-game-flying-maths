@@ -1,4 +1,4 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, ReturnValue } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, UpdateCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({});
@@ -20,11 +20,12 @@ exports.handler = async (event: any) => {
       ':language': language,
       ':grade': grade
     },
-    ReturnValues: 'ALL_NEW'
+    ReturnValues: 'ALL_NEW' as ReturnValue
   };
 
   try {
-    const result = await dynamoDB.update(params).promise();
+    const result = await dynamoDB.send(new UpdateCommand(params));
+
     return result.Attributes;
   } catch (error) {
     console.error('Error updating user profile:', error);

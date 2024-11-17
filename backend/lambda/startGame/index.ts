@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, UpdateCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, UpdateCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -29,7 +29,8 @@ exports.handler = async (event: any) => {
   };
 
   try {
-    const userResult = await dynamoDB.get(userParams).promise();
+    const userResult = await dynamoDB.send(new GetCommand(userParams));
+
     const userGrade = userResult.Item?.grade || 1;
 
     const challenges = Array.from({ length: 10 }, () => {
@@ -54,7 +55,7 @@ exports.handler = async (event: any) => {
       Item: game
     };
 
-    await dynamoDB.put(gameParams).promise();
+    await dynamoDB.send(new PutCommand(gameParams));
 
     return game;
   } catch (error) {

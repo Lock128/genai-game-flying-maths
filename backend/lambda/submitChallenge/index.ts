@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, UpdateCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, UpdateCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({});
 const dynamoDB = DynamoDBDocumentClient.from(client);
@@ -25,8 +25,8 @@ exports.handler = async (event: any) => {
   };
 
   try {
-    const result = await dynamoDB.update(params).promise();
-    const game = result.Attributes;
+    const result = await dynamoDB.send(new GetCommand(params));
+    const game = result.Item;
     
     // Add null check before accessing game properties
     if (!game) {
@@ -49,7 +49,7 @@ exports.handler = async (event: any) => {
       }
     };
 
-    await dynamoDB.update(updateParams).promise();
+    const result2 = await dynamoDB.send(new UpdateCommand(updateParams));
 
     return isCorrect;
   } catch (error) {

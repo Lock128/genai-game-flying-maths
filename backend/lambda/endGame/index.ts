@@ -1,4 +1,4 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, ReturnValue } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, UpdateCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({});
@@ -18,11 +18,11 @@ exports.handler = async (event: any) => {
       ':userId': userId,
       ':endTime': new Date().toISOString(),
     },
-    ReturnValues: 'ALL_NEW',
+    ReturnValues: 'ALL_NEW' as ReturnValue
   };
 
   try {
-    const result = await dynamoDB.update(params).promise();
+    const result = await dynamoDB.send(new UpdateCommand(params));
     const game = result.Attributes;
 
     // Add null check before accessing game properties
@@ -45,10 +45,10 @@ exports.handler = async (event: any) => {
     };
 
     // Save game result to a separate table for leaderboard
-    await dynamoDB.put({
+    await dynamoDB.send(new PutCommand({
       TableName: process.env.LEADERBOARD_TABLE!,
       Item: gameResult,
-    }).promise();
+    }));
 
     return gameResult;
   } catch (error) {
