@@ -3,6 +3,8 @@ import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as appsync from 'aws-cdk-lib/aws-appsync';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as iam from 'aws-cdk-lib/aws-iam';
+
 import { Construct } from 'constructs';
 
 export class FlyingMathsBackendStack extends cdk.Stack {
@@ -27,6 +29,42 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       userPool,
       generateSecret: false,
     });
+
+    // Create the Identity Pool
+    const identityPool = new cognito.CfnIdentityPool(this, 'GameIdentityPool', {
+      allowUnauthenticatedIdentities: false, // Set to true if you want to support unauthorized users
+      cognitoIdentityProviders: [{
+        clientId: userPoolClient.userPoolClientId,
+        providerName: userPool.userPoolProviderName,
+      }],
+      identityPoolName: 'GameIdentityPool'
+    });
+
+    // Create roles for authenticated users
+    const authenticatedRole = new iam.Role(this, 'CognitoDefaultAuthenticatedRole', {
+      assumedBy: new iam.FederatedPrincipal(
+        'cognito-identity.amazonaws.com',
+        {
+          StringEquals: {
+            'cognito-identity.amazonaws.com:aud': identityPool.ref,
+          },
+          'ForAnyValue:StringLike': {
+            'cognito-identity.amazonaws.com:amr': 'authenticated',
+          },
+        },
+        'sts:AssumeRoleWithWebIdentity'
+      ),
+    });
+
+    // Attach the role to the identity pool
+    new cognito.CfnIdentityPoolRoleAttachment(this, 'IdentityPoolRoleAttachment', {
+      identityPoolId: identityPool.ref,
+      roles: {
+        authenticated: authenticatedRole.roleArn,
+      },
+    });
+
+
 
     // DynamoDB Tables
     const userProfileTable = new dynamodb.Table(this, 'UserProfileTable', {
@@ -172,11 +210,25 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       fieldName: 'getLeaderboard',
     });
 
+    authenticatedRole.addToPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'appsync:GraphQL'
+      ],
+      resources: [
+        // Add your AppSync API ARN here
+        `arn:aws:appsync:${this.region}:${this.account}:apis/${api.apiId}/*`
+      ],
+    }));
+
     // Output
     new cdk.CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
     new cdk.CfnOutput(this, 'UserPoolClientId', { value: userPoolClient.userPoolClientId });
     new cdk.CfnOutput(this, 'GraphQLApiUrl', { value: api.graphqlUrl });
-    
+
+    new cdk.CfnOutput(this, 'IdentityPoolId', {
+      value: identityPool.ref,
+    });
   }
 }
 
