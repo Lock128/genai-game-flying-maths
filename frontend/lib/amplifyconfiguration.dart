@@ -25,7 +25,7 @@ const amplifyconfig = ''' {
         "CredentialsProvider": {
           "CognitoIdentity": {
             "Default": {
-              "PoolId": "eu-central-1_UezVDsUeF",
+              "PoolId": "eu-central-1:d4e2fa29-486d-4038-96bb-ab4d5ebe3d28",
               "Region": "eu-central-1"
             }
           }
