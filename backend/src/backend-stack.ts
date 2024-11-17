@@ -23,6 +23,11 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       },
     });
 
+    const userPoolClient = new cognito.UserPoolClient(this, 'FlyingMathsUserPoolClient', {
+      userPool,
+      generateSecret: false,
+    });
+
     // DynamoDB Tables
     const userProfileTable = new dynamodb.Table(this, 'UserProfileTable', {
       partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
@@ -169,7 +174,9 @@ export class FlyingMathsBackendStack extends cdk.Stack {
 
     // Output
     new cdk.CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
+    new cdk.CfnOutput(this, 'UserPoolClientId', { value: userPoolClient.userPoolClientId });
     new cdk.CfnOutput(this, 'GraphQLApiUrl', { value: api.graphqlUrl });
+    
   }
 }
 

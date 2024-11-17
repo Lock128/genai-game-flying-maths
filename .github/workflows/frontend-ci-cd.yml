@@ -46,6 +46,7 @@ jobs:
         cd frontend
         cd cdk
         npm ci
+        npm run cdk -- version
         npm run cdk -- deploy FlyingMathsFrontendStack --require-approval never
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
