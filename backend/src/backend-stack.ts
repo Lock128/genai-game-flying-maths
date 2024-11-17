@@ -103,6 +103,7 @@ export class FlyingMathsBackendStack extends cdk.Stack {
     const startGameLambda = new lambda.Function(this, 'StartGameLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
+      timeout: cdk.Duration.seconds(30),
       code: lambda.Code.fromAsset('lambda/startGame'),
       environment: {
         USER_PROFILE_TABLE: userProfileTable.tableName,
@@ -113,6 +114,7 @@ export class FlyingMathsBackendStack extends cdk.Stack {
     const submitChallengeLambda = new lambda.Function(this, 'SubmitChallengeLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
+      timeout: cdk.Duration.seconds(30),
       code: lambda.Code.fromAsset('lambda/submitChallenge'),
       environment: {
         GAMES_TABLE: gamesTable.tableName,
@@ -140,6 +142,7 @@ export class FlyingMathsBackendStack extends cdk.Stack {
 
     const getLeaderboardLambda = new lambda.Function(this, 'GetLeaderboardLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
+      
       handler: 'index.handler',
       code: lambda.Code.fromAsset('lambda/getLeaderboard'),
       environment: {
