@@ -111,7 +111,8 @@ export class FlyingMathsBackendStack extends cdk.Stack {
           command: [
             'sh', '-c',
             'npm ci && npm run build && cp package.json dist/ && cd dist && npm ci --production'
-          ]
+          ],
+          user: 'root'
         }
       }),
       environment: {
