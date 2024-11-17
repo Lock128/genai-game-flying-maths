@@ -104,7 +104,15 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
       timeout: cdk.Duration.seconds(30),
-      code: lambda.Code.fromAsset('lambda/startGame'),
+      code: lambda.Code.fromAsset('lambda/startGame'{
+        bundling: {
+          image: cdk.DockerImage.fromRegistry('alpine'),
+          command: [
+            'bash', '-c',
+            'npm install && npm run build && cp package.json dist/ && cd dist && npm install --production'
+          ]
+        }
+      }),
       environment: {
         USER_PROFILE_TABLE: userProfileTable.tableName,
         GAMES_TABLE: gamesTable.tableName,
