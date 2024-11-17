@@ -6,6 +6,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
 import { Construct } from 'constructs';
+import path from 'path';
 
 export class FlyingMathsBackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -104,12 +105,12 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
       timeout: cdk.Duration.seconds(30),
-      code: lambda.Code.fromAsset('lambda/startGame', {
+      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/startGame'), {
         bundling: {
           image: cdk.DockerImage.fromRegistry('node:18'),  // Use Node.js image instead of Alpine
           command: [
             'sh', '-c',
-            'npm install && npm run build && cp package.json dist/ && cd dist && npm install --production'
+            'npm ci && npm run build && cp package.json dist/ && cd dist && npm ci --production'
           ]
         }
       }),
