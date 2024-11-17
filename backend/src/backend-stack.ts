@@ -110,7 +110,21 @@ export class FlyingMathsBackendStack extends cdk.Stack {
           image: cdk.DockerImage.fromRegistry('node:18'),  // Use Node.js image instead of Alpine
           command: [
             'sh', '-c',
-            'npm ci && npm run build && cp package.json dist/ && cd dist && npm ci --production'
+            `
+            mkdir -p /asset-output && \
+            ls -al && \
+            cp -r . /tmp/build && \
+            cd /tmp/build && \
+            npm ci && \
+            npm run build && \
+            cp -r dist/* /asset-output/ && \
+            cp package.json /asset-output/ && \
+            cp package-lock.json /asset-output/ && \            
+            cd /asset-output && \
+            ls -al && \
+            npm ci --production && \
+            rm -rf node_modules/.package-lock.json
+            `
           ],
           user: 'root'
         }
