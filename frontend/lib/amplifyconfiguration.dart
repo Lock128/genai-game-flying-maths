@@ -25,15 +25,15 @@ const amplifyconfig = ''' {
         "CredentialsProvider": {
           "CognitoIdentity": {
             "Default": {
-              "PoolId": "eu-central-xxx",
+              "PoolId": "eu-central-1_UezVDsUeF",
               "Region": "eu-central-1"
             }
           }
         },
         "CognitoUserPool": {
           "Default": {
-            "PoolId": "eu-central-xxx",
-            "AppClientId": "xxx",
+            "PoolId": "eu-central-1_UezVDsUeF",
+            "AppClientId": "35gitjophim1o10qm3ee8h1cqa",
             "Region": "eu-central-1"
           }
         }
@@ -45,10 +45,9 @@ const amplifyconfig = ''' {
       "awsAPIPlugin": {
         "default": {
           "endpointType": "GraphQL",
-          "endpoint": "https://xxx.appsync-api.eu-central-1.amazonaws.com/graphql",
-          "region": "eu-centrqal-1",
-          "authorizationType": "API_KEY",
-          "apiKey": "da2-xxx"
+          "endpoint": "https://vjkugpdmhzabzm22fucnlrfuyu.appsync-api.eu-central-1.amazonaws.com/graphql",
+          "region": "eu-central-1",
+          "authorizationType": "AMAZON_COGNITO_USER_POOLS"
         }
       }
     }
