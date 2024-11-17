@@ -106,9 +106,9 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
       code: lambda.Code.fromAsset('lambda/startGame', {
         bundling: {
-          image: cdk.DockerImage.fromRegistry('alpine'),
+          image: cdk.DockerImage.fromRegistry('node:18'),  // Use Node.js image instead of Alpine
           command: [
-            'bash', '-c',
+            'sh', '-c',
             'npm install && npm run build && cp package.json dist/ && cd dist && npm install --production'
           ]
         }
