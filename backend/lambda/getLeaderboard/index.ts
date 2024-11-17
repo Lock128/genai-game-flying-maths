@@ -1,6 +1,9 @@
-import { DynamoDB } from 'aws-sdk';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, UpdateCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 
-const dynamoDB = new DynamoDB.DocumentClient();
+const client = new DynamoDBClient({});
+const dynamoDB = DynamoDBDocumentClient.from(client);
+
 
 exports.handler = async (event: any) => {
   const { limit = 10 } = event.arguments;

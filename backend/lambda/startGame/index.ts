@@ -1,7 +1,11 @@
-import { DynamoDB } from 'aws-sdk';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, UpdateCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
 
-const dynamoDB = new DynamoDB.DocumentClient();
+
+const client = new DynamoDBClient({});
+const dynamoDB = DynamoDBDocumentClient.from(client);
+
 
 function generateMathProblem(grade: number): { problem: string; correctAnswer: number } {
   // Implement logic to generate age-appropriate math problems based on grade
