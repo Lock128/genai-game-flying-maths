@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class AnimatedAnswerBox extends StatefulWidget {
@@ -23,30 +25,35 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox> with SingleTicker
   late Animation<double> _animation;
   bool _hasStarted = false;
   bool _isStopped = false;
+  Timer? _restartTimer;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 6000),
+      duration: const Duration(milliseconds: 15000),
       vsync: this,
     );
     
     _animation = Tween<double>(
-      begin: -0.2,  // Start at left edge
-      end: 0.8,    // End right of center
+      begin: -0.2,  // Start slightly left of screen
+      end: 1.2,    // End slightly right of screen
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOutQuad,
+      curve: Curves.linear,  // Use linear for constant speed
     ));
 
     // Listen for animation completion to restart
     _controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        if (!_isStopped) {
-          _controller.reset();
-          _controller.forward();
-        }
+      if (status == AnimationStatus.completed && !_isStopped) {
+        // Instead of immediately resetting, start from right side and animate after a short delay
+        _restartTimer?.cancel();
+        _restartTimer = Timer(const Duration(milliseconds: 100), () {
+          if (mounted && !_isStopped) {
+            _controller.reset();
+            _controller.forward();
+          }
+        });
       }
     });
 
@@ -63,6 +70,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox> with SingleTicker
   void dispose() {
     _controller.stop();
     _controller.dispose();
+    _restartTimer?.cancel();
     super.dispose();
   }
 
@@ -96,9 +104,11 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox> with SingleTicker
         final position = _animation.value * width;
 
         return Positioned(
-          left: position,
-          top: 100 + (widget.index * 70), // Adjust vertical spacing for better fit
-          child: GestureDetector(
+          left: position - 100,
+          top: 150 + (widget.index * 80), // Increased vertical spacing between answers
+          child: Opacity(
+            opacity: _hasStarted ? 1.0 : 0.0,
+            child:GestureDetector(
             onTap: () {
                 if (_hasStarted) {
                   setState(() {
@@ -109,6 +119,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox> with SingleTicker
                 }
               },
             child: Container(
+              width: 200,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               decoration: BoxDecoration(
                 color: Colors.blue.withOpacity(0.9),
@@ -128,10 +139,11 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox> with SingleTicker
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
-        );
+        ));
       },
     );
   }
@@ -160,7 +172,7 @@ class _GamePlayAreaState extends State<GamePlayArea> {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 400, // Fixed height for game area
+      height: 600, // Increased height for better spacing
       child: Stack(
         children: [
           // Question display at the top

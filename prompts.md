@@ -118,3 +118,7 @@ OK, this doesnt look bad. Cany ou now ensure that the frontend (frontend/lib/mai
 
 The Frontend that is implemented in flutter does not have any annimations - can we make possible answers for a challenge pop up on the left side and then move to the right side - so the "input" field gets replaced with a boxes that fly from left to right and your challenge becomes to click / tap the "correct" result of the box.
 The animation could look similar to the one ine https://github.com/flutter/games/tree/main/templates/endless_runner
+
+# new item
+the game still doesnt look like I wanted it to be - i can see only the correct answer flying in instead of multiple answers - one being correct, the others being wrong. The position of the correct answer should be random in the order.
+Please also ensure that the application does not switch to the "main" screen after selecting an answer but stays on the "challenge" screen. At the end of finishing the challenges, please show the resulting score including all challenges and the answers (the correct ones and the ones the user pressed)
