@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 class AnimatedAnswerBox extends StatefulWidget {
   final String answer;
@@ -52,7 +51,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox> with SingleTicker
     });
 
     // Only start animation after a delay based on index
-    Future.delayed(Duration(milliseconds: widget.index * 200), () {
+    Future.delayed(Duration(milliseconds: widget.index * 100), () {
       setState(() {
         _hasStarted = true;
       });
@@ -76,7 +75,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox> with SingleTicker
         _hasStarted = false;
       });
       _controller.reset();
-      Future.delayed(Duration(milliseconds: widget.index * 200), () {
+      Future.delayed(Duration(milliseconds: widget.index * 100), () {
         if (mounted) {
           setState(() {
             _hasStarted = true;

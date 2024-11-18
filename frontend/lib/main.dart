@@ -177,11 +177,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List<String> _generatePossibleAnswers() {
-    // Parse the current question to get the numbers
-    final parts = _currentQuestion.split(' ');
-    int num1 = int.parse(parts[0]);
-    int num2 = int.parse(parts[2]);
-    
     // Calculate correct answer
     String correctAnswer = _calculateCorrectAnswer();
     int correct = int.parse(correctAnswer);
@@ -193,8 +188,8 @@ class _MyHomePageState extends State<MyHomePage> {
     // Add correct answer first
     answers.add(correctAnswer);
     
-    // Add three wrong answers in fixed positions
-    while (answers.length < 4) {
+    // Add four wrong answers in fixed positions
+    while (answers.length < 5) {
       int wrongAnswer = correct;
       // Ensure we generate a unique wrong answer
       do {
@@ -233,7 +228,7 @@ class _MyHomePageState extends State<MyHomePage> {
     
     // Stop the timer while processing the answer
     _timer.cancel();
-    if (!_answerController.text.isEmpty) {
+    if (_answerController.text.isNotEmpty) {
       setState(() {
         _gameStarted = false;  // Temporarily pause game to prevent multiple submissions
       });
@@ -248,15 +243,16 @@ class _MyHomePageState extends State<MyHomePage> {
     // Get the current challenge ID from the challenges array using the currentProblem index
     String challengeId = _challenges[_currentProblem]['id'];
     // log the parameters of the graphql query
+    print('Current _gameId: $_gameId');
     print('Challenge ID: $challengeId');
     print('User answer: $userAnswer');
-    print('Current _gameId: $_gameId');
+    
 
     final restOperation = Amplify.API.mutate(
       request: GraphQLRequest<String>(
         document: '''
           mutation SubmitChallenge {
-            submitChallenge(gameId: $_gameId, challengeId: $challengeId, answer: $userAnswer)
+            submitChallenge(gameId: "$_gameId", challengeId: "$challengeId", answer: $userAnswer)
           }
         ''',
         variables: {
@@ -282,7 +278,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _answerController.clear();
     
     // Move to next problem immediately after answer is processed
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 100));
 
     if (_currentProblem < _challenges.length - 1) {
       setState(() {
