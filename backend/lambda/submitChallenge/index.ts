@@ -49,6 +49,8 @@ exports.handler = async (event: any) => {
       }
     };
 
+    console.log(updateParams);
+
     const result2 = await dynamoDB.send(new UpdateCommand(updateParams));
 
     return isCorrect;

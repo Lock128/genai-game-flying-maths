@@ -188,7 +188,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final restOperation = Amplify.API.mutate(
       request: GraphQLRequest<String>(
         document: '''
-          mutation SubmitChallenge($_gameId: ID!, $challengeId: ID!, $userAnswer: Int!) {
+          mutation SubmitChallenge {
             submitChallenge(gameId: $_gameId, challengeId: $challengeId, answer: $userAnswer)
           }
         ''',

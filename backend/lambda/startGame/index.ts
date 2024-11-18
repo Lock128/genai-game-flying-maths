@@ -46,7 +46,9 @@ exports.handler = async (event: any) => {
       id: gameId,
       userId,
       startTime: new Date().toISOString(),
-      challenges
+      challenges,
+      totalAnswered: 0,
+      correctAnswers: 0
     };
 
     // Save game to DynamoDB
