@@ -175,51 +175,55 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _checkAnswer() async {
-    int userAnswer = int.tryParse(_answerController.text) ?? -1;
-    // log _challenges 
-    print(_challenges);
-    print(_currentProblem);
+  int userAnswer = int.tryParse(_answerController.text) ?? -1;
+  
+  // Debug logging to see the state
+  print('Current problem index: $_currentProblem');
+  print('Challenges: $_challenges');
 
-    try {
-      var challengeId;
-      final restOperation = Amplify.API.mutate(
-        request: GraphQLRequest<String>(
-          document: '''
-            mutation SubmitChallenge($_gameId: ID!, $challengeId: ID!, $userAnswer: Int!) {
-              submitChallenge(gameId: $_gameId, challengeId: $challengeId, answer: $userAnswer)
-            }
-          ''',
-          variables: {
-            'gameId': _gameId,
-            'challengeId': _challenges[_currentProblem]['id'],
-            'answer': userAnswer,
-          },
-        ),
-      );
+  try {
+    // Get the current challenge ID from the challenges array using the currentProblem index
+    String challengeId = _challenges[_currentProblem]['id'];
+    
+    final restOperation = Amplify.API.mutate(
+      request: GraphQLRequest<String>(
+        document: '''
+          mutation SubmitChallenge($_gameId: ID!, $challengeId: ID!, $userAnswer: Int!) {
+            submitChallenge(gameId: $_gameId, challengeId: $challengeId, answer: $userAnswer)
+          }
+        ''',
+        variables: {
+          'gameId': _gameId,
+          'challengeId': challengeId,  // Use the extracted challengeId
+          'answer': userAnswer,
+        },
+      ),
+    );
 
-      final response = await restOperation.response;
-      final data = json.decode(response.data!);
-      final bool isCorrect = data['submitChallenge'] ?? false;
+    final response = await restOperation.response;
+    final data = json.decode(response.data!);
+    final bool isCorrect = data['submitChallenge'] ?? false;
 
+    setState(() {
+      if (isCorrect) _score++;
+    });
+
+    _answerController.clear();
+
+    if (_currentProblem < _challenges.length - 1) {
       setState(() {
-        if (isCorrect) _score++;
+        _currentProblem++;
       });
-
-      _answerController.clear();
-
-      if (_currentProblem < _challenges.length - 1) {
-        setState(() {
-          _currentProblem++;
-        });
-        _getNextProblem();
-        _resetTimer();
-      } else {
-        _endGame();
-      }
-    } on ApiException catch (e) {
-      print('Failed to submit answer: ${e.message}');
+      _getNextProblem();
+      _resetTimer();
+    } else {
+      _endGame();
     }
+  } on ApiException catch (e) {
+    print('Failed to submit answer: ${e.message}');
   }
+}
+
 
   Future<void> _endGame() async {
     _timer.cancel();

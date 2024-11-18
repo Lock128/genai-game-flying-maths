@@ -101,16 +101,12 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       },
     });
 
-    const startGameLambda = new lambda.Function(this, 'StartGameLambda', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      timeout: cdk.Duration.seconds(30),
-      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/startGame'), {
-        bundling: {
-          image: cdk.DockerImage.fromRegistry('node:18'),  // Use Node.js image instead of Alpine
-          command: [
-            'sh', '-c',
-            `
+    const BUNDLE_OPTIONS = {
+      bundling: {
+        image: cdk.DockerImage.fromRegistry('node:18'), // Use Node.js image instead of Alpine
+        command: [
+          'sh', '-c',
+          `
             mkdir -p /asset-output && \
             ls -al && \
             cp -r . /tmp/build && \
@@ -125,10 +121,15 @@ export class FlyingMathsBackendStack extends cdk.Stack {
             npm ci --production && \
             rm -rf node_modules/.package-lock.json
             `
-          ],
-          user: 'root'
-        }
-      }),
+        ],
+        user: 'root'
+      }
+    };
+    const startGameLambda = new lambda.Function(this, 'StartGameLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+      timeout: cdk.Duration.seconds(30),
+      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/startGame'), BUNDLE_OPTIONS),
       environment: {
         USER_PROFILE_TABLE: userProfileTable.tableName,
         GAMES_TABLE: gamesTable.tableName,
@@ -139,7 +140,7 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
       timeout: cdk.Duration.seconds(30),
-      code: lambda.Code.fromAsset('lambda/submitChallenge'),
+      code: lambda.Code.fromAsset(path.join(__dirname, 'lambda/submitChallenge'), BUNDLE_OPTIONS),
       environment: {
         GAMES_TABLE: gamesTable.tableName,
       },
@@ -148,7 +149,7 @@ export class FlyingMathsBackendStack extends cdk.Stack {
     const getGameResultLambda = new lambda.Function(this, 'GetGameResultLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
-      code: lambda.Code.fromAsset('lambda/getGameResult'),
+      code: lambda.Code.fromAsset(path.join(__dirname, 'lambda/getGameResult'), BUNDLE_OPTIONS),
       environment: {
         GAMES_TABLE: gamesTable.tableName,
       },
@@ -157,7 +158,7 @@ export class FlyingMathsBackendStack extends cdk.Stack {
     const endGameLambda = new lambda.Function(this, 'EndGameLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
-      code: lambda.Code.fromAsset('lambda/endGame'),
+      code: lambda.Code.fromAsset(path.join(__dirname, 'lambda/endGame'), BUNDLE_OPTIONS),
       environment: {
         GAMES_TABLE: gamesTable.tableName,
         LEADERBOARD_TABLE: leaderboardTable.tableName,
@@ -166,9 +167,9 @@ export class FlyingMathsBackendStack extends cdk.Stack {
 
     const getLeaderboardLambda = new lambda.Function(this, 'GetLeaderboardLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
-      
+
       handler: 'index.handler',
-      code: lambda.Code.fromAsset('lambda/getLeaderboard'),
+      code: lambda.Code.fromAsset(path.join(__dirname, 'lambda/getLeaderboard'), BUNDLE_OPTIONS),
       environment: {
         LEADERBOARD_TABLE: leaderboardTable.tableName,
       },
