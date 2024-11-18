@@ -176,6 +176,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _checkAnswer() async {
     int userAnswer = int.tryParse(_answerController.text) ?? -1;
+    // log _challenges 
+    print(_challenges);
+    print(_currentProblem);
+
     try {
       var challengeId;
       final restOperation = Amplify.API.mutate(
