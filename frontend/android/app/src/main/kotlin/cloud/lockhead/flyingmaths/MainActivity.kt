@@ -1,4 +1,4 @@
-package cloud.lockhead.frontend
+package cloud.lockhead.flyingmaths
 
 import io.flutter.embedding.android.FlutterActivity
 
