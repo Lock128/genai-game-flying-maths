@@ -28,13 +28,13 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox> with SingleTicker
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 8000),
+      duration: const Duration(milliseconds: 6000),
       vsync: this,
     );
     
     _animation = Tween<double>(
-      begin: -1.0, // Start from left side off screen
-      end: 1.0,    // End at right side off screen
+      begin: -0.2,  // Start at left edge
+      end: 0.8,    // End right of center
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeOutQuad,
@@ -97,7 +97,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox> with SingleTicker
 
         return Positioned(
           left: position,
-          top: 100 + (widget.index * 70), // Vertical spacing between answers
+          top: 100 + (widget.index * 70), // Adjust vertical spacing for better fit
           child: GestureDetector(
             onTap: () {
                 if (_hasStarted) {
@@ -109,9 +109,9 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox> with SingleTicker
                 }
               },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.8),
+                color: Colors.blue.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(

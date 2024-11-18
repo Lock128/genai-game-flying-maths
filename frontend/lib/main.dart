@@ -9,6 +9,7 @@ import 'dart:math' as math;
 
 import 'amplifyconfiguration.dart';
 import 'game_components.dart';
+import 'results_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -145,6 +146,8 @@ class _MyHomePageState extends State<MyHomePage> {
         if (_timeLeft > 0) {
           _timeLeft--;
         } else {
+          // When timer hits 0, submit the current answer or an empty answer if none selected
+          _answerController.text = _answerController.text.isEmpty ? "" : _answerController.text;
           _checkAnswer();
         }
       });
@@ -185,10 +188,10 @@ class _MyHomePageState extends State<MyHomePage> {
     final random = math.Random();
     List<String> answers = [];
     
-    // Add correct answer first
+    // Add correct answer and generate wrong answers
     answers.add(correctAnswer);
     
-    // Add four wrong answers in fixed positions
+    // Add four wrong answers
     while (answers.length < 5) {
       int wrongAnswer = correct;
       // Ensure we generate a unique wrong answer
@@ -197,6 +200,9 @@ class _MyHomePageState extends State<MyHomePage> {
       } while (wrongAnswer == correct || answers.contains(wrongAnswer.toString()));
       answers.add(wrongAnswer.toString());
     }
+    
+    // Shuffle the answers to randomize the correct answer position
+    answers.shuffle();
     
     return answers;
   }
@@ -223,21 +229,15 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  List<Map<String, dynamic>> _gameResults = [];
+
   Future<void> _checkAnswer() async {
     if (_answerController.text.isEmpty) return;
     
     // Stop the timer while processing the answer
     _timer.cancel();
-    if (_answerController.text.isNotEmpty) {
-      setState(() {
-        _gameStarted = false;  // Temporarily pause game to prevent multiple submissions
-      });
-    }
-    int userAnswer = int.tryParse(_answerController.text) ?? -1;
   
-  // Debug logging to see the state
-  print('Current problem index: $_currentProblem');
-  print('Challenges: $_challenges');
+  int userAnswer = int.tryParse(_answerController.text) ?? -1;
 
   try {
     // Get the current challenge ID from the challenges array using the currentProblem index
@@ -264,11 +264,17 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     final response = await restOperation.response;
-    print('Raw response data: ${response.data}');
     final data = json.decode(response.data!);
-    print('Decoded response data: $data');
     final bool isCorrect = data['submitChallenge'] ?? false;
-    print('Is correct: $isCorrect');
+    
+    // Store the result for final display
+    _gameResults.add({
+      'question': _currentQuestion,
+      'userAnswer': userAnswer.toString(),
+      'correctAnswer': _calculateCorrectAnswer(),
+      'isCorrect': isCorrect,
+    });
+    
     setState(() {
       if (isCorrect) {
         _score++;
@@ -303,7 +309,7 @@ class _MyHomePageState extends State<MyHomePage> {
         request: GraphQLRequest<String>(
           document: '''
             query GetGameResult($_gameId: ID!) {
-              getGameResult(gameId: $_gameId) {
+              getGameResult(gameId: "$_gameId") {
                 totalChallenges
                 correctAnswers
                 completionTime
@@ -331,40 +337,28 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _showGameResult(Map<String, dynamic> gameResult) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Game Result'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Total Challenges: ${gameResult['totalChallenges']}'),
-              Text('Correct Answers: ${gameResult['correctAnswers']}'),
-              Text('Completion Time: ${gameResult['completionTime']} seconds'),
-            ],
+    setState(() {
+      _gameStarted = false;
+    });
+    
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            title: const Text('Game Results'),
+            automaticallyImplyLeading: false,
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Play Again'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _startGame();
-              },
-            ),
-            TextButton(
-              child: const Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                setState(() {
-                  _gameStarted = false;
-                });
-              },
-            ),
-          ],
-        );
-      },
+          body: ResultsScreen(
+            totalChallenges: gameResult['totalChallenges'],
+            correctAnswers: gameResult['correctAnswers'],
+            challengeResults: _gameResults,
+            onPlayAgain: () {
+              Navigator.of(context).pop();
+              _startGame();
+            },
+          ),
+        ),
+      ),
     );
   }
 
@@ -374,7 +368,17 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Image.asset(
+              'web/jhs.png',
+              height: 100,
+            ),
+          ),
+          Expanded(
+            child: Center(
         child: _gameStarted
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -389,10 +393,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     possibleAnswers: _generatePossibleAnswers(),
                     correctAnswer: _calculateCorrectAnswer(),
                     onAnswerSubmitted: (isCorrect, selectedAnswer) async {
-                      print('Answer submitted: $isCorrect');
-                      setState(() {
-                        _answerController.text = selectedAnswer;
-                      });
+                      _answerController.text = selectedAnswer;
                       await _checkAnswer();
                     },
                   ),
@@ -427,6 +428,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
       ),
-    );
+    )]));
   }
 }
