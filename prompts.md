@@ -111,3 +111,10 @@ Please read the README.md again. There is a section about the "Languages and Cod
 
 OK, this doesnt look bad. Cany ou now ensure that the frontend (frontend/lib/main.dart) talks to the backend API instead of the localhost api?
 
+
+
+
+# New Item - Prompt to change the feature
+
+The Frontend that is implemented in flutter does not have any annimations - can we make possible answers for a challenge pop up on the left side and then move to the right side - so the "input" field gets replaced with a boxes that fly from left to right and your challenge becomes to click / tap the "correct" result of the box.
+The animation could look similar to the one ine https://github.com/flutter/games/tree/main/templates/endless_runner

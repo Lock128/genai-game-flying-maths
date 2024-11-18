@@ -5,8 +5,10 @@ import 'package:amplify_api/amplify_api.dart';
 import 'package:amplify_authenticator/amplify_authenticator.dart';
 import 'dart:convert';
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'amplifyconfiguration.dart';
+import 'game_components.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -174,8 +176,69 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  List<String> _generatePossibleAnswers() {
+    // Parse the current question to get the numbers
+    final parts = _currentQuestion.split(' ');
+    int num1 = int.parse(parts[0]);
+    int num2 = int.parse(parts[2]);
+    
+    // Calculate correct answer
+    String correctAnswer = _calculateCorrectAnswer();
+    int correct = int.parse(correctAnswer);
+    
+    // Generate 3 wrong answers within a reasonable range
+    final random = math.Random();
+    List<String> answers = [];
+    
+    // Add correct answer first
+    answers.add(correctAnswer);
+    
+    // Add three wrong answers in fixed positions
+    while (answers.length < 4) {
+      int wrongAnswer = correct;
+      // Ensure we generate a unique wrong answer
+      do {
+        wrongAnswer = correct + (random.nextInt(11) - 5);
+      } while (wrongAnswer == correct || answers.contains(wrongAnswer.toString()));
+      answers.add(wrongAnswer.toString());
+    }
+    
+    return answers;
+  }
+
+  String _calculateCorrectAnswer() {
+    // Parse the current question to get the numbers and operator
+    final parts = _currentQuestion.split(' ');
+    int num1 = int.parse(parts[0]);
+    String operator = parts[1];
+    int num2 = int.parse(parts[2]);
+    
+    // Calculate result based on operator
+    switch (operator) {
+      case '+':
+        return (num1 + num2).toString();
+      case '-':
+        return (num1 - num2).toString();
+      case '*':
+        return (num1 * num2).toString();
+      case '/':
+        return (num1 ~/ num2).toString();
+      default:
+        return '0';
+    }
+  }
+
   Future<void> _checkAnswer() async {
-  int userAnswer = int.tryParse(_answerController.text) ?? -1;
+    if (_answerController.text.isEmpty) return;
+    
+    // Stop the timer while processing the answer
+    _timer.cancel();
+    if (!_answerController.text.isEmpty) {
+      setState(() {
+        _gameStarted = false;  // Temporarily pause game to prevent multiple submissions
+      });
+    }
+    int userAnswer = int.tryParse(_answerController.text) ?? -1;
   
   // Debug logging to see the state
   print('Current problem index: $_currentProblem');
@@ -184,7 +247,11 @@ class _MyHomePageState extends State<MyHomePage> {
   try {
     // Get the current challenge ID from the challenges array using the currentProblem index
     String challengeId = _challenges[_currentProblem]['id'];
-    
+    // log the parameters of the graphql query
+    print('Challenge ID: $challengeId');
+    print('User answer: $userAnswer');
+    print('Current _gameId: $_gameId');
+
     final restOperation = Amplify.API.mutate(
       request: GraphQLRequest<String>(
         document: '''
@@ -201,18 +268,26 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     final response = await restOperation.response;
+    print('Raw response data: ${response.data}');
     final data = json.decode(response.data!);
+    print('Decoded response data: $data');
     final bool isCorrect = data['submitChallenge'] ?? false;
-
+    print('Is correct: $isCorrect');
     setState(() {
-      if (isCorrect) _score++;
+      if (isCorrect) {
+        _score++;
+      }
     });
 
     _answerController.clear();
+    
+    // Move to next problem immediately after answer is processed
+    await Future.delayed(Duration(milliseconds: 100));
 
     if (_currentProblem < _challenges.length - 1) {
       setState(() {
         _currentProblem++;
+        _gameStarted = true;  // Re-enable game
       });
       _getNextProblem();
       _resetTimer();
@@ -308,28 +383,23 @@ class _MyHomePageState extends State<MyHomePage> {
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text(
-                    'Problem ${_currentProblem + 1}: $_currentQuestion',
-                    style: const TextStyle(fontSize: 24),
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: _answerController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter your answer',
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _checkAnswer,
-                    child: const Text('Submit'),
-                  ),
-                  const SizedBox(height: 20),
                   Text('Score: $_score', style: const TextStyle(fontSize: 18)),
                   const SizedBox(height: 20),
                   Text('Time left: $_timeLeft seconds',
                       style: const TextStyle(fontSize: 18)),
+                  const SizedBox(height: 20),
+                  GamePlayArea(
+                    question: 'Problem ${_currentProblem + 1}: $_currentQuestion',
+                    possibleAnswers: _generatePossibleAnswers(),
+                    correctAnswer: _calculateCorrectAnswer(),
+                    onAnswerSubmitted: (isCorrect, selectedAnswer) async {
+                      print('Answer submitted: $isCorrect');
+                      setState(() {
+                        _answerController.text = selectedAnswer;
+                      });
+                      await _checkAnswer();
+                    },
+                  ),
                 ],
               )
             : Column(

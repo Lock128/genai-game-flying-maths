@@ -1,0 +1,199 @@
+import 'package:flutter/material.dart';
+import 'dart:math' as math;
+
+class AnimatedAnswerBox extends StatefulWidget {
+  final String answer;
+  final bool isCorrect;
+  final VoidCallback onTap;
+  final int index;  // Added index for staggered animation
+
+  const AnimatedAnswerBox({
+    Key? key,
+    required this.answer,
+    required this.isCorrect,
+    required this.onTap,
+    required this.index,
+  }) : super(key: key);
+
+  @override
+  _AnimatedAnswerBoxState createState() => _AnimatedAnswerBoxState();
+}
+
+class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  bool _hasStarted = false;
+  bool _isStopped = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 8000),
+      vsync: this,
+    );
+    
+    _animation = Tween<double>(
+      begin: -1.0, // Start from left side off screen
+      end: 1.0,    // End at right side off screen
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutQuad,
+    ));
+
+    // Listen for animation completion to restart
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        if (!_isStopped) {
+          _controller.reset();
+          _controller.forward();
+        }
+      }
+    });
+
+    // Only start animation after a delay based on index
+    Future.delayed(Duration(milliseconds: widget.index * 200), () {
+      setState(() {
+        _hasStarted = true;
+      });
+      _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.stop();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(AnimatedAnswerBox oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.answer != widget.answer) {
+      setState(() {
+        _isStopped = false;
+        _hasStarted = false;
+      });
+      _controller.reset();
+      Future.delayed(Duration(milliseconds: widget.index * 200), () {
+        if (mounted) {
+          setState(() {
+            _hasStarted = true;
+          });
+          _controller.forward();
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        // Calculate position based on screen width
+        final width = MediaQuery.of(context).size.width;
+        final position = _animation.value * width;
+
+        return Positioned(
+          left: position,
+          top: 100 + (widget.index * 70), // Vertical spacing between answers
+          child: GestureDetector(
+            onTap: () {
+                if (_hasStarted) {
+                  setState(() {
+                    _isStopped = true;
+                  });
+                  _controller.stop();
+                  widget.onTap();
+                }
+              },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(2, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                widget.answer,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class GamePlayArea extends StatefulWidget {
+  final String question;
+  final List<String> possibleAnswers;
+  final String correctAnswer;
+  final Function(bool, String) onAnswerSubmitted;
+
+  const GamePlayArea({
+    Key? key,
+    required this.question,
+    required this.possibleAnswers,
+    required this.correctAnswer,
+    required this.onAnswerSubmitted,
+  }) : super(key: key);
+
+  @override
+  _GamePlayAreaState createState() => _GamePlayAreaState();
+}
+
+class _GamePlayAreaState extends State<GamePlayArea> {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 400, // Fixed height for game area
+      child: Stack(
+        children: [
+          // Question display at the top
+          Positioned(
+            top: 20,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                widget.question,
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          // Answer boxes
+          ...List.generate(
+            widget.possibleAnswers.length,
+            (index) {
+              final answer = widget.possibleAnswers[index];
+              final isCorrect = answer == widget.correctAnswer;
+              
+              return AnimatedAnswerBox(
+                answer: answer,
+                isCorrect: isCorrect,
+                onTap: () => widget.onAnswerSubmitted(isCorrect, answer),
+                index: index,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
