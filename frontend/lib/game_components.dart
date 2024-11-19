@@ -167,7 +167,7 @@ class _GamePlayAreaState extends State<GamePlayArea> {
   @override
   Widget build(BuildContext context) {
     //print question
-    print("build _GamePlayAreaState - question: ${widget.question}");
+    print("build _GamePlayAreaState - question: ${widget.question} | answer: ${widget.correctAnswer} | possible: ${widget.possibleAnswers}");
 
     if (!widget.possibleAnswers.contains(widget.correctAnswer)) {
       throw Exception("Correct answer not in possible answers");

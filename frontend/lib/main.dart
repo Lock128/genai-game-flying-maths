@@ -223,6 +223,8 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_currentProblem < _challenges.length) {
       setState(() {
         _currentQuestion = _challenges[_currentProblem]['problem'];
+        _currentCorrectAnswer = _calculateCorrectAnswer();
+        _currentPossibleAnswers = _generatePossibleAnswers();
       });
     } else {
       _endGame();
@@ -267,7 +269,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Convert Set back to List and shuffle
     List<String> answersList = answers.toList();
-
+    print("Generated possible answers: $answersList");
     // Shuffle the answers to randomize the correct answer position
     answersList.shuffle();
 
@@ -277,6 +279,7 @@ class _MyHomePageState extends State<MyHomePage> {
 String _calculateCorrectAnswer() {
   // Parse the current question to get the numbers and operators
   final parts = _currentQuestion.split(' ');
+  print("Calculating correct answer for ${_currentQuestion}");
   
   // Handle expressions with 3 operands (e.g., "2 + 3 + 4" or "2 * 3 + 4")
   if (parts.length >= 5) {  // 3 numbers and 2 operators
@@ -313,18 +316,23 @@ String _calculateCorrectAnswer() {
 }
 
 int _evaluateOperation(int num1, String operator, int num2) {
+  print("Evaluating $num1 $operator $num2");
   switch (operator) {
     case '+':
+      print("Result: ${num1 + num2}");
       return num1 + num2;
     case '-':
+      print("Result: ${num1 - num2}");
       return num1 - num2;
     case '*':
+    print("Result: ${num1 * num2}");
       return num1 * num2;
     case '/':
       // Handle division carefully to avoid runtime errors
       if (num2 == 0) {
         throw Exception('Division by zero');
       }
+      print("Result: ${num1 ~/ num2}");
       return num1 ~/ num2; // Using integer division
     default:
       throw Exception('Unknown operator: $operator');

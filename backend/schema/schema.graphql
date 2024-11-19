@@ -24,7 +24,7 @@ type GameResult {
   userId: ID!
   totalChallenges: Int!
   correctAnswers: Int!
-  completionTime: Int!
+  completionTime: Int
 }
 
 input UpdateUserProfileInput {
