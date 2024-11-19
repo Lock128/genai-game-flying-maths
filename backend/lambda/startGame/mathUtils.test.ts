@@ -1,4 +1,6 @@
 import { generateMathProblem, checkAnswer } from './mathUtils';
+import { describe, test, expect } from '@jest/globals';
+
 
 describe('mathUtils', () => {
   describe('generateMathProblem', () => {
