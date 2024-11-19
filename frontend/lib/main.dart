@@ -66,10 +66,19 @@ class _MyHomePageState extends State<MyHomePage> {
   int _timeLeft = 30;
   String _gameId = '';
   List<Map<String, dynamic>> _challenges = [];
+  late List<String> _currentPossibleAnswers;
+  late String _currentCorrectAnswer;
 
   @override
   void initState() {
     super.initState();
+  }
+
+  void _generateNewQuestion() {
+      _currentQuestion = _challenges[_currentProblem]['problem'];
+      _currentCorrectAnswer = _calculateCorrectAnswer();
+    _currentPossibleAnswers = _generatePossibleAnswers();
+    
   }
 
   Future<String> _getPlayerName() async {
@@ -129,6 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
           _timeLeft = 30;
           _gameId = game['id'];
           _challenges = List<Map<String, dynamic>>.from(game['challenges']);
+          _generateNewQuestion();
         });
         _getNextProblem();
         _startTimer();
@@ -147,7 +157,8 @@ class _MyHomePageState extends State<MyHomePage> {
           _timeLeft--;
         } else {
           // When timer hits 0, submit the current answer or an empty answer if none selected
-          _answerController.text = _answerController.text.isEmpty ? "" : _answerController.text;
+          _answerController.text =
+              _answerController.text.isEmpty ? "" : _answerController.text;
           _checkAnswer();
         }
       });
@@ -181,30 +192,47 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<String> _generatePossibleAnswers() {
     // Calculate correct answer
-    String correctAnswer = _calculateCorrectAnswer();
+    String correctAnswer = _currentCorrectAnswer;
     int correct = int.parse(correctAnswer);
-    
-    // Generate 3 wrong answers within a reasonable range
+
+    // Generate 4 wrong answers within a reasonable range
     final random = math.Random();
-    List<String> answers = [];
-    
-    // Add correct answer and generate wrong answers
-    answers.add(correctAnswer);
-    
-    // Add four wrong answers
-    while (answers.length < 5) {
-      int wrongAnswer = correct;
-      // Ensure we generate a unique wrong answer
-      do {
-        wrongAnswer = correct + (random.nextInt(11) - 5);
-      } while (wrongAnswer == correct || answers.contains(wrongAnswer.toString()));
-      answers.add(wrongAnswer.toString());
+    Set<String> answers = {correctAnswer}; // Use Set to ensure uniqueness
+
+    // Generate wrong answers based on operation type
+    while (answers.length < 6) {
+      int wrongAnswer;
+      // Extract operation from question
+      String operation = _currentQuestion.split(' ')[1];
+
+      switch (operation) {
+        case '+':
+        case '-':
+          wrongAnswer = correct + (random.nextInt(21) - 10); // Range: ±10
+          break;
+        case '*':
+          wrongAnswer = correct + (random.nextInt(11) - 5); // Range: ±5
+          break;
+        case '/':
+          wrongAnswer = correct + (random.nextInt(5) - 2); // Range: ±2
+          break;
+        default:
+          wrongAnswer = correct + (random.nextInt(11) - 5);
+      }
+
+      // Only add if it's different from correct answer and makes sense
+      if (wrongAnswer != correct && wrongAnswer > 0) {
+        answers.add(wrongAnswer.toString());
+      }
     }
-    
+
+    // Convert Set back to List and shuffle
+    List<String> answersList = answers.toList();
+
     // Shuffle the answers to randomize the correct answer position
-    answers.shuffle();
-    
-    return answers;
+    answersList.shuffle();
+
+    return answersList;
   }
 
   String _calculateCorrectAnswer() {
@@ -213,7 +241,7 @@ class _MyHomePageState extends State<MyHomePage> {
     int num1 = int.parse(parts[0]);
     String operator = parts[1];
     int num2 = int.parse(parts[2]);
-    
+
     // Calculate result based on operator
     switch (operator) {
       case '+':
@@ -233,74 +261,72 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _checkAnswer() async {
     if (_answerController.text.isEmpty) return;
-    
+
     // Stop the timer while processing the answer
     _timer.cancel();
-  
-  int userAnswer = int.tryParse(_answerController.text) ?? -1;
 
-  try {
-    // Get the current challenge ID from the challenges array using the currentProblem index
-    String challengeId = _challenges[_currentProblem]['id'];
-    // log the parameters of the graphql query
-    print('Current _gameId: $_gameId');
-    print('Challenge ID: $challengeId');
-    print('User answer: $userAnswer');
-    
+    int userAnswer = int.tryParse(_answerController.text) ?? -1;
 
-    final restOperation = Amplify.API.mutate(
-      request: GraphQLRequest<String>(
-        document: '''
+    try {
+      // Get the current challenge ID from the challenges array using the currentProblem index
+      String challengeId = _challenges[_currentProblem]['id'];
+      // log the parameters of the graphql query
+      print('Current _gameId: $_gameId');
+      print('Challenge ID: $challengeId');
+      print('User answer: $userAnswer');
+
+      final restOperation = Amplify.API.mutate(
+        request: GraphQLRequest<String>(
+          document: '''
           mutation SubmitChallenge {
             submitChallenge(gameId: "$_gameId", challengeId: "$challengeId", answer: $userAnswer)
           }
         ''',
-        variables: {
-          'gameId': _gameId,
-          'challengeId': challengeId,  // Use the extracted challengeId
-          'answer': userAnswer,
-        },
-      ),
-    );
+          variables: {
+            'gameId': _gameId,
+            'challengeId': challengeId, // Use the extracted challengeId
+            'answer': userAnswer,
+          },
+        ),
+      );
 
-    final response = await restOperation.response;
-    final data = json.decode(response.data!);
-    final bool isCorrect = data['submitChallenge'] ?? false;
-    
-    // Store the result for final display
-    _gameResults.add({
-      'question': _currentQuestion,
-      'userAnswer': userAnswer.toString(),
-      'correctAnswer': _calculateCorrectAnswer(),
-      'isCorrect': isCorrect,
-    });
-    
-    setState(() {
-      if (isCorrect) {
-        _score++;
-      }
-    });
+      final response = await restOperation.response;
+      final data = json.decode(response.data!);
+      final bool isCorrect = data['submitChallenge'] ?? false;
 
-    _answerController.clear();
-    
-    // Move to next problem immediately after answer is processed
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    if (_currentProblem < _challenges.length - 1) {
-      setState(() {
-        _currentProblem++;
-        _gameStarted = true;  // Re-enable game
+      // Store the result for final display
+      _gameResults.add({
+        'question': _currentQuestion,
+        'userAnswer': userAnswer.toString(),
+        'correctAnswer': _currentCorrectAnswer,
+        'isCorrect': isCorrect,
       });
-      _getNextProblem();
-      _resetTimer();
-    } else {
-      _endGame();
-    }
-  } on ApiException catch (e) {
-    print('Failed to submit answer: ${e.message}');
-  }
-}
 
+      setState(() {
+        if (isCorrect) {
+          _score++;
+        }
+      });
+
+      _answerController.clear();
+
+      // Move to next problem immediately after answer is processed
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      if (_currentProblem < _challenges.length - 1) {
+        setState(() {
+          _currentProblem++;
+          _gameStarted = true; // Re-enable game
+        });
+        _getNextProblem();
+        _resetTimer();
+      } else {
+        _endGame();
+      }
+    } on ApiException catch (e) {
+      print('Failed to submit answer: ${e.message}');
+    }
+  }
 
   Future<void> _endGame() async {
     _timer.cancel();
@@ -340,7 +366,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _gameStarted = false;
     });
-    
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => Scaffold(
@@ -365,11 +391,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Column(
-        children: [
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        body: Column(children: [
           Container(
             padding: const EdgeInsets.all(16.0),
             child: Image.asset(
@@ -379,55 +404,58 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Expanded(
             child: Center(
-        child: _gameStarted
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text('Score: $_score', style: const TextStyle(fontSize: 18)),
-                  const SizedBox(height: 20),
-                  Text('Time left: $_timeLeft seconds',
-                      style: const TextStyle(fontSize: 18)),
-                  const SizedBox(height: 20),
-                  GamePlayArea(
-                    question: 'Problem ${_currentProblem + 1}: $_currentQuestion',
-                    possibleAnswers: _generatePossibleAnswers(),
-                    correctAnswer: _calculateCorrectAnswer(),
-                    onAnswerSubmitted: (isCorrect, selectedAnswer) async {
-                      _answerController.text = selectedAnswer;
-                      await _checkAnswer();
-                    },
-                  ),
-                ],
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text('Select difficulty:',
-                      style: TextStyle(fontSize: 18)),
-                  const SizedBox(height: 20),
-                  DropdownButton<String>(
-                    value: _difficulty,
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _difficulty = newValue!;
-                      });
-                    },
-                    items: <String>['easy', 'medium', 'hard']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _startGame,
-                    child: const Text('Start Game'),
-                  ),
-                ],
-              ),
-      ),
-    )]));
+              child: _gameStarted
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text('Score: $_score',
+                            style: const TextStyle(fontSize: 18)),
+                        const SizedBox(height: 20),
+                        Text('Time left: $_timeLeft seconds',
+                            style: const TextStyle(fontSize: 18)),
+                        const SizedBox(height: 20),
+                        GamePlayArea(
+                          question:
+                              'Problem ${_currentProblem + 1}: $_currentQuestion',
+                          possibleAnswers: _currentPossibleAnswers,
+                          correctAnswer: _currentCorrectAnswer,
+                          onAnswerSubmitted: (isCorrect, selectedAnswer) async {
+                            _answerController.text = selectedAnswer;
+                            await _checkAnswer();
+                          },
+                        ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        const Text('Select difficulty:',
+                            style: TextStyle(fontSize: 18)),
+                        const SizedBox(height: 20),
+                        DropdownButton<String>(
+                          value: _difficulty,
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _difficulty = newValue!;
+                            });
+                          },
+                          items: <String>['easy', 'medium', 'hard']
+                              .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: _startGame,
+                          child: const Text('Start Game'),
+                        ),
+                      ],
+                    ),
+            ),
+          )
+        ]));
   }
 }

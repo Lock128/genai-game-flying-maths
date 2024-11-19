@@ -33,7 +33,7 @@ exports.handler = async (event: any) => {
 
     const userGrade = userResult.Item?.grade || 1;
 
-    const challenges = Array.from({ length: 10 }, () => {
+    const challenges = Array.from({ length: 5 }, () => {
       const { problem, correctAnswer } = generateMathProblem(userGrade);
       return {
         id: uuidv4(),
