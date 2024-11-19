@@ -31,7 +31,8 @@ export function generateMathProblem(difficulty: string): MathProblem {
   let problemString = '';
   const MAX_NUMBER = 250;
   let iter = 0;
-  while (answer == 0 || answer != Math.floor(answer) || answer > MAX_NUMBER || iter < 15) {
+  let redo = true;
+  while (redo && iter < 50) {
     iter += 1;
 
     for (let i = 0; i < numOperands; i++) {
@@ -45,8 +46,18 @@ export function generateMathProblem(difficulty: string): MathProblem {
 
     problemString = problem.join(' ');
     answer = evaluateExpression(problemString);
+    if (answer > MAX_NUMBER) {
+      console.log("answer is too big for problemString", answer, problemString)
+      redo = true;
+    }
+    else if (answer != Math.floor(answer)) {
+      console.log("answer is not an integer for problemString", answer, problemString)
+      redo = true;
+    } else {
+      redo = false;
+    }
   }
-  if (iter == 15) {
+  if (iter == 50) {
     return {
       problem: "1 + 1",
       answer: 2

@@ -274,27 +274,62 @@ class _MyHomePageState extends State<MyHomePage> {
     return answersList;
   }
 
-  String _calculateCorrectAnswer() {
-    // Parse the current question to get the numbers and operator
-    final parts = _currentQuestion.split(' ');
+String _calculateCorrectAnswer() {
+  // Parse the current question to get the numbers and operators
+  final parts = _currentQuestion.split(' ');
+  
+  // Handle expressions with 3 operands (e.g., "2 + 3 + 4" or "2 * 3 + 4")
+  if (parts.length >= 5) {  // 3 numbers and 2 operators
+    int num1 = int.parse(parts[0]);
+    String operator1 = parts[1];
+    int num2 = int.parse(parts[2]);
+    String operator2 = parts[3];
+    int num3 = int.parse(parts[4]);
+
+    // First, evaluate operations according to operator precedence
+    // Multiplication and division take precedence over addition and subtraction
+    if ((operator1 == '*' || operator1 == '/') && (operator2 == '+' || operator2 == '-')) {
+      // Evaluate first operation first
+      int intermediateResult = _evaluateOperation(num1, operator1, num2);
+      // Then evaluate second operation
+      return _evaluateOperation(intermediateResult, operator2, num3).toString();
+    } else if ((operator2 == '*' || operator2 == '/') && (operator1 == '+' || operator1 == '-')) {
+      // Evaluate second operation first
+      int intermediateResult = _evaluateOperation(num2, operator2, num3);
+      // Then evaluate with first number
+      return _evaluateOperation(num1, operator1, intermediateResult).toString();
+    } else {
+      // If operators have same precedence, evaluate left to right
+      int intermediateResult = _evaluateOperation(num1, operator1, num2);
+      return _evaluateOperation(intermediateResult, operator2, num3).toString();
+    }
+  } else {
+    // Handle simple expressions with 2 operands
     int num1 = int.parse(parts[0]);
     String operator = parts[1];
     int num2 = int.parse(parts[2]);
-
-    // Calculate result based on operator
-    switch (operator) {
-      case '+':
-        return (num1 + num2).toString();
-      case '-':
-        return (num1 - num2).toString();
-      case '*':
-        return (num1 * num2).toString();
-      case '/':
-        return (num1 ~/ num2).toString();
-      default:
-        return '0';
-    }
+    return _evaluateOperation(num1, operator, num2).toString();
   }
+}
+
+int _evaluateOperation(int num1, String operator, int num2) {
+  switch (operator) {
+    case '+':
+      return num1 + num2;
+    case '-':
+      return num1 - num2;
+    case '*':
+      return num1 * num2;
+    case '/':
+      // Handle division carefully to avoid runtime errors
+      if (num2 == 0) {
+        throw Exception('Division by zero');
+      }
+      return num1 ~/ num2; // Using integer division
+    default:
+      throw Exception('Unknown operator: $operator');
+  }
+}
 
   List<Map<String, dynamic>> _gameResults = [];
 
