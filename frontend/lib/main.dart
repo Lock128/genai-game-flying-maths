@@ -113,8 +113,8 @@ class _MyHomePageState extends State<MyHomePage> {
       final restOperation = Amplify.API.mutate(
         request: GraphQLRequest<String>(
           document: '''
-            mutation StartGame {
-              startGame {
+            mutation StartGame($_difficulty: String!) {
+              startGame(difficulty: $_difficulty) {
                 id
                 challenges {
                   id
@@ -123,6 +123,9 @@ class _MyHomePageState extends State<MyHomePage> {
               }
             }
           ''',
+          variables: {
+            'difficulty': _difficulty,
+          },
         ),
       );
 
@@ -278,8 +281,8 @@ class _MyHomePageState extends State<MyHomePage> {
       final restOperation = Amplify.API.mutate(
         request: GraphQLRequest<String>(
           document: '''
-          mutation SubmitChallenge {
-            submitChallenge(gameId: "$_gameId", challengeId: "$challengeId", answer: $userAnswer)
+          mutation SubmitChallenge($_gameId: ID!, $challengeId: ID!, $userAnswer: Int!) {
+            submitChallenge(gameId: $_gameId, challengeId: $challengeId, answer: $userAnswer)
           }
         ''',
           variables: {
@@ -344,11 +347,14 @@ class _MyHomePageState extends State<MyHomePage> {
     // Get player name
     String playerName = await _getPlayerName();
     try {
+      // Ensure we're using mounted check before any setState calls
+      if (!mounted) return;
+
       final restOperation = Amplify.API.query(
         request: GraphQLRequest<String>(
           document: '''
             query GetGameResult($_gameId: ID!) {
-              getGameResult(gameId: "$_gameId") {
+              getGameResult(gameId: $_gameId) {
                 totalChallenges
                 correctAnswers
                 completionTime
@@ -365,13 +371,33 @@ class _MyHomePageState extends State<MyHomePage> {
       final data = json.decode(response.data!);
       final gameResult = data['getGameResult'];
 
-      if (gameResult != null) {
+      if (gameResult != null && mounted) {
+        // Add a small delay to ensure proper navigation
+        await Future.delayed(const Duration(milliseconds: 300));
         _showGameResult(gameResult);
       } else {
         print('Failed to get game result: No data received');
+        // Show error message to user
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to load game results. Please try again.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
       }
     } on ApiException catch (e) {
       print('Failed to get game result: ${e.message}');
+      // Show error message to user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.message}'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 

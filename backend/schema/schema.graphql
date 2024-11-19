@@ -34,7 +34,7 @@ input UpdateUserProfileInput {
 
 type Mutation {
   updateUserProfile(input: UpdateUserProfileInput!): User!
-  startGame: Game!
+  startGame(difficulty: String!): Game!
   submitChallenge(gameId: ID!, challengeId: ID!, answer: Int!): Boolean!
   endGame(gameId: ID!): GameResult!
 }

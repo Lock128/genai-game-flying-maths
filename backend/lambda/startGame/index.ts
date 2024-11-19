@@ -1,24 +1,17 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, UpdateCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
+import { generateMathProblem } from '../../src/mathUtils';
 
 
 const client = new DynamoDBClient({});
 const dynamoDB = DynamoDBDocumentClient.from(client);
 
 
-function generateMathProblem(grade: number): { problem: string; correctAnswer: number } {
-  // Implement logic to generate age-appropriate math problems based on grade
-  // This is a placeholder implementation
-  const num1 = Math.floor(Math.random() * 10) + 1;
-  const num2 = Math.floor(Math.random() * 10) + 1;
-  return {
-    problem: `${num1} + ${num2}`,
-    correctAnswer: num1 + num2
-  };
-}
+// Math problem generation moved to mathUtils.ts
 
 exports.handler = async (event: any) => {
+  const difficulty = event.arguments.difficulty || 'medium';
   const userId = event.identity.sub;
   const gameId = uuidv4();
 
@@ -34,11 +27,11 @@ exports.handler = async (event: any) => {
     const userGrade = userResult.Item?.grade || 1;
 
     const challenges = Array.from({ length: 5 }, () => {
-      const { problem, correctAnswer } = generateMathProblem(userGrade);
+      const { problem, answer } = generateMathProblem(difficulty);
       return {
         id: uuidv4(),
         problem,
-        correctAnswer
+        correctAnswer: answer
       };
     });
 

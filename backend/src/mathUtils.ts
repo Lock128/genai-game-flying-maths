@@ -4,7 +4,27 @@ export interface MathProblem {
 }
 
 export function generateMathProblem(difficulty: string): MathProblem {
-  const operators = ['+', '-', '*'];
+  let operators: string[];
+  let maxNumber: number;
+  
+  switch(difficulty) {
+    case 'easy':
+      operators = ['+', '-'];
+      maxNumber = 20;
+      break;
+    case 'medium':
+      operators = ['+', '-', '*', '/'];
+      maxNumber = 50;
+      break;
+    case 'hard':
+      operators = ['+', '-', '*', '/'];
+      maxNumber = 100;
+      break;
+    default:
+      operators = ['+', '-'];
+      maxNumber = 20;
+  }
+  
   const numOperands = Math.floor(Math.random() * 2) + 2; // 2 or 3 operands
   let problem = [];
   let answer = 0;
@@ -14,20 +34,7 @@ export function generateMathProblem(difficulty: string): MathProblem {
       const operator = operators[Math.floor(Math.random() * operators.length)];
       problem.push(operator);
     }
-    let num: number;
-    switch (difficulty) {
-      case 'easy':
-        num = Math.floor(Math.random() * 10) + 1; // 1 to 10
-        break;
-      case 'medium':
-        num = Math.floor(Math.random() * 90) + 11; // 11 to 100
-        break;
-      case 'hard':
-        num = Math.floor(Math.random() * 900) + 101; // 101 to 1000
-        break;
-      default:
-        throw new Error('Invalid difficulty level');
-    }
+    const num = Math.floor(Math.random() * maxNumber) + 1;
     problem.push(num.toString());
   }
 
