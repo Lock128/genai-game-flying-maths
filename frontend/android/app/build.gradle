@@ -9,6 +9,7 @@ android {
     namespace = "cloud.lockhead.flyingmaths"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+    //ext.kotlin_version = '1.8.20'
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -20,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        multiDexEnabled true
+        //multiDexEnabled true
 
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "cloud.lockhead.flyingmaths"
@@ -65,6 +66,7 @@ flutter {
     source = "../.."
 }
 
+/*
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'androidx.appcompat:appcompat:1.6.1'
@@ -73,3 +75,4 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation 'androidx.multidex:multidex:2.0.1'
 }
+*/
