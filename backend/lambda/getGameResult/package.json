@@ -1,5 +1,5 @@
 {
-    "name": "start-game-lambda",
+    "name": "game-result-lambda",
     "version": "1.0.0",
     "scripts": {
       "build": "tsc"

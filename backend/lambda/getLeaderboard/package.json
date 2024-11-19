@@ -1,5 +1,5 @@
 {
-    "name": "start-game-lambda",
+    "name": "get-leaderboard-lambda",
     "version": "1.0.0",
     "scripts": {
       "build": "tsc"

@@ -74,6 +74,29 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
+String? _errorMessage;
+
+  void _showError(String message) {
+    setState(() {
+      _errorMessage = message;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'Dismiss',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
+  }
+  
   void _generateNewQuestion() {
       _currentQuestion = _challenges[_currentProblem]['problem'];
       _currentCorrectAnswer = _calculateCorrectAnswer();
@@ -130,8 +153,17 @@ class _MyHomePageState extends State<MyHomePage> {
       );
 
       final response = await restOperation.response;
+
+            if (response.data == null) {
+        throw Exception('No data received from server');
+      }
+
       final data = json.decode(response.data!);
       final game = data['startGame'];
+
+      if (data == null) {
+        throw Exception('Invalid game data received');
+      }
 
       if (game != null) {
         setState(() {
@@ -149,7 +181,14 @@ class _MyHomePageState extends State<MyHomePage> {
         print('Failed to start game: No game data received');
       }
     } on ApiException catch (e) {
-      print('Failed to start game: ${e.message}');
+      _showError('Network error: ${e.message}');
+      safePrint('Failed to start game: ${e.message}');
+    } on FormatException catch (e) {
+      _showError('Error processing server response: ${e.message}');
+      safePrint('JSON parsing error: $e');
+    } on Exception catch (e) {
+      _showError('Unexpected error: ${e.toString()}');
+      safePrint('Unexpected error: $e');
     }
   }
 
@@ -263,8 +302,10 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Map<String, dynamic>> _gameResults = [];
 
   Future<void> _checkAnswer() async {
-    if (_answerController.text.isEmpty) return;
-
+    if (_answerController.text.isEmpty) {
+      _showError('Please select an answer');
+      return;
+    }
     // Stop the timer while processing the answer
     _timer.cancel();
 
@@ -368,6 +409,10 @@ class _MyHomePageState extends State<MyHomePage> {
       );
 
       final response = await restOperation.response;
+      if (response.data == null) {
+        throw Exception('No game result data received');
+      }
+
       final data = json.decode(response.data!);
       final gameResult = data['getGameResult'];
 
@@ -388,16 +433,14 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
     } on ApiException catch (e) {
-      print('Failed to get game result: ${e.message}');
-      // Show error message to user
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.message}'),
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
+      _showError('Network error while fetching results: ${e.message}');
+      safePrint('Failed to get game result: ${e.message}');
+    } on FormatException catch (e) {
+      _showError('Error processing game results: ${e.message}');
+      safePrint('JSON parsing error: $e');
+    } on Exception catch (e) {
+      _showError('Unexpected error: ${e.toString()}');
+      safePrint('Unexpected error: $e');
     }
   }
 

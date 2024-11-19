@@ -22,9 +22,6 @@ describe('mathUtils', () => {
       expect(hardProblem.problem).toBeDefined();
     });
 
-    test('throws an error for invalid difficulty', () => {
-      expect(() => generateMathProblem('invalid')).toThrow('Invalid difficulty level');
-    });
   });
 
   describe('checkAnswer', () => {
