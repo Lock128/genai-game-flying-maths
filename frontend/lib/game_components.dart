@@ -201,8 +201,8 @@ class _GamePlayAreaState extends State<GamePlayArea> {
                 final answer = entry.value;
                 final isCorrect = answer == widget.correctAnswer;
                 // print index, answer and isCorrect
-                print("index: $index, answer: $answer, isCorrect: $isCorrect");
-                print("\tValueKey: answer_$index${widget.question}");
+                //print("index: $index, answer: $answer, isCorrect: $isCorrect");
+                //print("\tValueKey: answer_$index${widget.question}");
                 return AnimatedAnswerBox(
                   key: ValueKey(
                       'answer_$index${widget.question}'),

@@ -74,13 +74,13 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-String? _errorMessage;
+  String? _errorMessage;
 
   void _showError(String message) {
     setState(() {
       _errorMessage = message;
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -96,12 +96,11 @@ String? _errorMessage;
       ),
     );
   }
-  
+
   void _generateNewQuestion() {
-      _currentQuestion = _challenges[_currentProblem]['problem'];
-      _currentCorrectAnswer = _calculateCorrectAnswer();
+    _currentQuestion = _challenges[_currentProblem]['problem'];
+    _currentCorrectAnswer = _calculateCorrectAnswer();
     _currentPossibleAnswers = _generatePossibleAnswers();
-    
   }
 
   Future<String> _getPlayerName() async {
@@ -136,25 +135,23 @@ String? _errorMessage;
       final restOperation = Amplify.API.mutate(
         request: GraphQLRequest<String>(
           document: '''
-            mutation StartGame($_difficulty: String!) {
-              startGame(difficulty: $_difficulty) {
+            mutation StartGame {
+              startGame(difficulty: "$_difficulty") {
                 id
                 challenges {
                   id
                   problem
+                  correctAnswer
                 }
               }
             }
-          ''',
-          variables: {
-            'difficulty': _difficulty,
-          },
+          '''
         ),
       );
 
       final response = await restOperation.response;
 
-            if (response.data == null) {
+      if (response.data == null) {
         throw Exception('No data received from server');
       }
 
@@ -322,15 +319,10 @@ String? _errorMessage;
       final restOperation = Amplify.API.mutate(
         request: GraphQLRequest<String>(
           document: '''
-          mutation SubmitChallenge($_gameId: ID!, $challengeId: ID!, $userAnswer: Int!) {
-            submitChallenge(gameId: $_gameId, challengeId: $challengeId, answer: $userAnswer)
+          mutation SubmitChallenge {
+            submitChallenge(gameId: "$_gameId", challengeId: "$challengeId", answer: $userAnswer)
           }
-        ''',
-          variables: {
-            'gameId': _gameId,
-            'challengeId': challengeId, // Use the extracted challengeId
-            'answer': userAnswer,
-          },
+        '''
         ),
       );
 
@@ -394,17 +386,14 @@ String? _errorMessage;
       final restOperation = Amplify.API.query(
         request: GraphQLRequest<String>(
           document: '''
-            query GetGameResult($_gameId: ID!) {
-              getGameResult(gameId: $_gameId) {
+            query GetGameResult {
+              getGameResult(gameId: "$_gameId") {
                 totalChallenges
                 correctAnswers
                 completionTime
               }
             }
-          ''',
-          variables: {
-            'gameId': _gameId,
-          },
+          '''
         ),
       );
 

@@ -6,8 +6,8 @@ export interface MathProblem {
 export function generateMathProblem(difficulty: string): MathProblem {
   let operators: string[];
   let maxNumber: number;
-  
-  switch(difficulty) {
+
+  switch (difficulty) {
     case 'easy':
       operators = ['+', '-'];
       maxNumber = 20;
@@ -24,23 +24,34 @@ export function generateMathProblem(difficulty: string): MathProblem {
       operators = ['+', '-'];
       maxNumber = 20;
   }
-  
+
   const numOperands = Math.floor(Math.random() * 2) + 2; // 2 or 3 operands
   let problem = [];
   let answer = 0;
+  let problemString = '';
+  const MAX_NUMBER = 250;
+  let iter = 0;
+  while (answer == 0 || answer != Math.floor(answer) || answer > MAX_NUMBER || iter < 15) {
+    iter += 1;
 
-  for (let i = 0; i < numOperands; i++) {
-    if (i > 0) {
-      const operator = operators[Math.floor(Math.random() * operators.length)];
-      problem.push(operator);
+    for (let i = 0; i < numOperands; i++) {
+      if (i > 0) {
+        const operator = operators[Math.floor(Math.random() * operators.length)];
+        problem.push(operator);
+      }
+      const num = Math.floor(Math.random() * maxNumber) + 1;
+      problem.push(num.toString());
     }
-    const num = Math.floor(Math.random() * maxNumber) + 1;
-    problem.push(num.toString());
+
+    problemString = problem.join(' ');
+    answer = evaluateExpression(problemString);
   }
-
-  const problemString = problem.join(' ');
-  answer = evaluateExpression(problemString);
-
+  if (iter == 15) {
+    return {
+      problem: "1 + 1",
+      answer: 2
+    };
+  }
   return {
     problem: problemString,
     answer: answer
@@ -62,6 +73,9 @@ function evaluateExpression(expression: string): number {
         break;
       case '*':
         result *= operand;
+        break;
+      case '/':
+        result /= operand;
         break;
     }
   }
