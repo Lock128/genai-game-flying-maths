@@ -122,3 +122,9 @@ The animation could look similar to the one ine https://github.com/flutter/games
 # new item
 the game still doesnt look like I wanted it to be - i can see only the correct answer flying in instead of multiple answers - one being correct, the others being wrong. The position of the correct answer should be random in the order.
 Please also ensure that the application does not switch to the "main" screen after selecting an answer but stays on the "challenge" screen. At the end of finishing the challenges, please show the resulting score including all challenges and the answers (the correct ones and the ones the user pressed)
+
+
+# new task - update backend+frontend with new parameter
+
+Please adjust the project in a way that the user input when starting a game (difficulty: easy, medium, hard) has an input on the generated challenges and based on the difficulty the challenges will be different. For "easy" is should be only plus and minus challenges, medium it can include multiplications and divisions. hard should have bigger numbers as part of the challenges.
+While you're working on this, please verify why the "game end" information have not been displayed to the user when I last played the game.

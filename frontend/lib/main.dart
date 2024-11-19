@@ -330,6 +330,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _endGame() async {
     _timer.cancel();
+    // not in app notification that the game ended
+    print('Game ended. Score: $_score');
+
+    //show notification bar in app that t he game ended
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Game ended. Score: $_score'),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+
+    // Get player name
+    String playerName = await _getPlayerName();
     try {
       final restOperation = Amplify.API.query(
         request: GraphQLRequest<String>(
@@ -396,7 +409,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         body: Column(children: [
           Container(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(5.0),
             child: Image.asset(
               'web/jhs.png',
               height: 100,

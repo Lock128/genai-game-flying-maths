@@ -173,7 +173,7 @@ class _GamePlayAreaState extends State<GamePlayArea> {
       throw Exception("Correct answer not in possible answers");
     }
 
-    return SizedBox(
+    return SingleChildScrollView( child: SizedBox(
         width: double.infinity,
         height: 600,
         child: Container(
@@ -214,7 +214,7 @@ class _GamePlayAreaState extends State<GamePlayArea> {
               }).toList(),
             ],
           ),
-        ));
+        )));
   }
 
   @override
