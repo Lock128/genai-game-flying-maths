@@ -10,6 +10,7 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
     ext.kotlin_version = '1.8.20'
+    kotlin_version = '1.8.20'
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
