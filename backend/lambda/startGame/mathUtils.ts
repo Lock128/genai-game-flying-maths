@@ -26,13 +26,14 @@ export function generateMathProblem(difficulty: string): MathProblem {
   }
 
   const numOperands = Math.floor(Math.random() * 2) + 2; // 2 or 3 operands
-  let problem = [];
+  
   let answer = 0;
   let problemString = '';
   const MAX_NUMBER = 250;
   let iter = 0;
   let redo = true;
   while (redo && iter < 50) {
+    let problem = [];
     iter += 1;
 
     for (let i = 0; i < numOperands; i++) {
