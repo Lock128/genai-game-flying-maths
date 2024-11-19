@@ -1,7 +1,7 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, UpdateCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
-import { generateMathProblem } from '../../src/mathUtils';
+import { generateMathProblem } from './mathUtils';
 
 
 const client = new DynamoDBClient({});
