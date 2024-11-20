@@ -24,6 +24,8 @@
             "question": {}
         }
     },
+    "home": "Schwierigkeit ändern",
+    "selectAnswer": "Bitte wähle eine Antwort aus.",
     "gameResults": "Spielergebnisse",
     "gameEnded": "Das Spiel ist zu Ende. Score: {score}",
     "playerName": "Hallo {playerName} - das hast du gut gemacht!",

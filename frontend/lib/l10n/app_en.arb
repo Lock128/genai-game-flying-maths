@@ -24,6 +24,8 @@
             "question": {}
         }
     },
+    "home": "Change difficulty",
+    "selectAnswer": "Please select an answer",
     "gameResults": "Game Results",
     "gameEnded": "Game ended. Score: {score}",
     "playerName": "Hey {playerName} - well done!",

@@ -174,9 +174,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _startGame() async {
     try {
           // Get player name
-     _playerName = await _getPlayerName();
+    
     if (_playerName.isEmpty) {
       _playerName = 'Anonymous';
+      if (_playerName=='Anonymous') {
+          _playerName = await _getPlayerName();
+      }
     }
       final restOperation = Amplify.API.mutate(
         request: GraphQLRequest<String>(document: '''
@@ -214,6 +217,7 @@ class _MyHomePageState extends State<MyHomePage> {
           _timeLeft = 30;
           _gameId = game['id'];
           _challenges = List<Map<String, dynamic>>.from(game['challenges']);
+          _gameResults = [];
           _generateNewQuestion();
         });
         _getNextProblem();
@@ -337,7 +341,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _checkAnswer() async {
     if (_answerController.text.isEmpty) {
-      _showError('Please select an answer');
+      _showError(AppLocalizations.of(context)!.selectAnswer);
       return;
     }
     // Stop the timer while processing the answer
@@ -486,6 +490,10 @@ class _MyHomePageState extends State<MyHomePage> {
             onPlayAgain: () {
               Navigator.of(context).pop();
               _startGame();
+            },
+            onMainPage: () {
+              Navigator.of(context).pop();
+              //_startGame();
             },
           ),
         ),

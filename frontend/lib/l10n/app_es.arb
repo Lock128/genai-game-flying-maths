@@ -24,6 +24,8 @@
             "question": {}
         }
     },
+    "home": "Change difficulty",
+    "selectAnswer": "Please select an answer",
     "gameResults": "Resultados del Juego",
     "gameEnded": "Game ended. Score: {score}",
     "playerName": "{playerName}",

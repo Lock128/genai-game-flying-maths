@@ -35,7 +35,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
     // Initialize the animation controller
     _controller = AnimationController(
       duration:
-          const Duration(milliseconds: 25000), // 8 seconds to cross screen
+          const Duration(milliseconds: 15000), // 8 seconds to cross screen
       vsync: this,
     );
 

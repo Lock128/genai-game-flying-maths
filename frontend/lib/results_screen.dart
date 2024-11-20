@@ -8,6 +8,7 @@ class ResultsScreen extends StatelessWidget {
   final List<Map<String, dynamic>> challengeResults;
   final int score;
   final VoidCallback onPlayAgain;
+  final VoidCallback onMainPage;
   final String playerName;
 
   const ResultsScreen({
@@ -17,6 +18,7 @@ class ResultsScreen extends StatelessWidget {
     required this.challengeResults,
     required this.score,
     required this.onPlayAgain, 
+    required this.onMainPage,
     required this.playerName,
   }) : super(key: key);
 
@@ -69,6 +71,12 @@ class ResultsScreen extends StatelessWidget {
           onPressed: onPlayAgain,
           child: Text(AppLocalizations.of(context)!.playAgain),
         ),
+        const SizedBox(height: 15),
+        ElevatedButton(
+          onPressed: onMainPage,
+          child: Text(AppLocalizations.of(context)!.home),
+        ),
+        const SizedBox(height: 40),
       ],
     );
   }
