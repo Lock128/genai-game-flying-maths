@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'utils/math_utils.dart';
 
 class ResultsScreen extends StatelessWidget {
   final int totalChallenges;
@@ -46,13 +47,15 @@ class ResultsScreen extends StatelessWidget {
             itemCount: challengeResults.length,
             itemBuilder: (context, index) {
               final result = challengeResults[index];
+              final question = result['question'];
+              final correctAnswer = calculateCorrectAnswer(question);
               return ListTile(
                 title: Text(AppLocalizations.of(context)!.problem(
                   (index + 1).toString(),
-                  result['question'],
+                  question,
                 )),
                 subtitle: Text(
-                  '${AppLocalizations.of(context)!.yourAnswer(result['userAnswer'])} (${result['isCorrect'] ? AppLocalizations.of(context)!.correct : AppLocalizations.of(context)!.wrong}) \n${AppLocalizations.of(context)!.correctAnswer(0)}'
+                  '${AppLocalizations.of(context)!.yourAnswer(result['userAnswer'])} | Correct: $correctAnswer'rrect'] ? AppLocalizations.of(context)!.correct : AppLocalizations.of(context)!.wrong}) \n${AppLocalizations.of(context)!.correctAnswer(correctAnswers[index])}'
                 ),
                 leading: Icon(
                   result['isCorrect'] ? Icons.check_circle : Icons.cancel,
