@@ -13,6 +13,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'amplifyconfiguration.dart';
 import 'game_components.dart';
 import 'results_screen.dart';
+import 'utils/math_utils.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

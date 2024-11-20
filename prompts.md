@@ -139,3 +139,8 @@ While you where working I change the main.dart - please review again and don't c
 
 ## fix2?
 in the main.dart - in the method _calculateCorrectAnswer i have added some prints that you are removing because they are new - can you please remove your changes in that method from the patch? thanks.
+
+# allow access without a user
+If you look at the complete project, you will see that the Frontend uses Amplify UI to authenticated against cognito. The user identity is then used to allow access to graphql. 
+Can you add an option to access the app without having an account?
+
