@@ -34,7 +34,8 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
 
     // Initialize the animation controller
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 25000), // 8 seconds to cross screen
+      duration:
+          const Duration(milliseconds: 25000), // 8 seconds to cross screen
       vsync: this,
     );
 
@@ -80,8 +81,8 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
                 }
               },
               child: Container(
-                width: 200,
-                height: 60,
+                width: 180,
+                height: 55,
                 decoration: BoxDecoration(
                   color: Colors.blue.shade500,
                   borderRadius: BorderRadius.circular(12),
@@ -167,54 +168,60 @@ class _GamePlayAreaState extends State<GamePlayArea> {
   @override
   Widget build(BuildContext context) {
     //print question
-    print("build _GamePlayAreaState - question: ${widget.question} | answer: ${widget.correctAnswer} | possible: ${widget.possibleAnswers}");
+    print(
+        "build _GamePlayAreaState - question: ${widget.question} | answer: ${widget.correctAnswer} | possible: ${widget.possibleAnswers}");
 
     if (!widget.possibleAnswers.contains(widget.correctAnswer)) {
       throw Exception("Correct answer not in possible answers");
     }
 
-    return SingleChildScrollView( child: SizedBox(
-        width: double.infinity,
-        height: 600,
-        child: Container(
-          width: double.infinity,
-          height: 600,
-          child: Stack(
-            children: [
-              Positioned(
-                top: 20,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Text(
-                    widget.question,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+    return Expanded(child: LayoutBuilder(builder: (context, constraints) {
+      return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
               ),
-              ...widget.possibleAnswers.asMap().entries.map((entry) {
-                final index = entry.key;
-                final answer = entry.value;
-                final isCorrect = answer == widget.correctAnswer;
-                // print index, answer and isCorrect
-                //print("index: $index, answer: $answer, isCorrect: $isCorrect");
-                //print("\tValueKey: answer_$index${widget.question}");
-                return AnimatedAnswerBox(
-                  key: ValueKey(
-                      'answer_$index${widget.question}'),
-                  answer: answer,
-                  isCorrect: isCorrect,
-                  onTap: () => widget.onAnswerSubmitted(isCorrect, answer),
-                  index: index,
-                );
-              }).toList(),
-            ],
-          ),
-        )));
+              child: Container(
+                width: double.infinity,
+                height: 600,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: 20,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Text(
+                          widget.question,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    ...widget.possibleAnswers.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final answer = entry.value;
+                      final isCorrect = answer == widget.correctAnswer;
+                      // print index, answer and isCorrect
+                      //print("index: $index, answer: $answer, isCorrect: $isCorrect");
+                      //print("\tValueKey: answer_$index${widget.question}");
+                      return AnimatedAnswerBox(
+                        key: ValueKey('answer_$index${widget.question}'),
+                        answer: answer,
+                        isCorrect: isCorrect,
+                        onTap: () =>
+                            widget.onAnswerSubmitted(isCorrect, answer),
+                        index: index,
+                      );
+                    }).toList(),
+                  ],
+                ),
+              )));
+    }));
   }
 
   @override

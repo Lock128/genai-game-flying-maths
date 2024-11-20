@@ -1,0 +1,55 @@
+{
+    "appTitle": "Matemáticas Voladoras",
+    "score": "Puntuación: {score}",
+    "@score": {
+        "placeholders": {
+            "score": {}
+        }
+    },
+    "timeLeft": "Tiempo restante: {seconds} segundos",
+    "@timeLeft": {
+        "placeholders": {
+            "seconds": {}
+        }
+    },
+    "selectDifficulty": "Seleccionar dificultad:",
+    "easy": "Fácil",
+    "medium": "Medio",
+    "hard": "Difícil",
+    "startGame": "Comenzar Juego",
+    "problem": "Problema {number}: {question}",
+    "@problem": {
+        "placeholders": {
+            "number": {},
+            "question": {}
+        }
+    },
+    "gameResults": "Resultados del Juego",
+    "gameEnded": "Game ended. Score: {score}",
+    "playerName": "{playerName}",
+    "finalScore": "Puntuación: {correct} / {total}",
+    "@finalScore": {
+        "placeholders": {
+            "correct": {},
+            "total": {}
+        }
+    },
+    "yourAnswer": "Tu respuesta: {answer}",
+    "@yourAnswer": {
+        "placeholders": {
+            "answer": {}
+        }
+    },
+    "correct": "Correcto",
+    "wrong": "Incorrecto",
+    "correctAnswer": "Respuesta correcta: {answer}",
+    "@correctAnswer": {
+        "placeholders": {
+            "answer": {}
+        }
+    },
+    "playAgain": "Jugar de Nuevo",
+    "enterName": "Ingresa tu nombre",
+    "ok": "OK",
+    "selectLanguage": "Seleccionar Idioma"
+}

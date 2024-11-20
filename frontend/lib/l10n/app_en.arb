@@ -1,0 +1,55 @@
+{
+    "appTitle": "Flying Maths",
+    "score": "Score: {score}",
+    "@score": {
+        "placeholders": {
+            "score": {}
+        }
+    },
+    "timeLeft": "Time left: {seconds} seconds",
+    "@timeLeft": {
+        "placeholders": {
+            "seconds": {}
+        }
+    },
+    "selectDifficulty": "Select difficulty:",
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard",
+    "startGame": "Start Game",
+    "problem": "Problem {number}: {question}",
+    "@problem": {
+        "placeholders": {
+            "number": {},
+            "question": {}
+        }
+    },
+    "gameResults": "Game Results",
+    "gameEnded": "Game ended. Score: {score}",
+    "playerName": "Hey {playerName} - well done!",
+    "finalScore": "Score: {correct} / {total}",
+    "@finalScore": {
+        "placeholders": {
+            "correct": {},
+            "total": {}
+        }
+    },
+    "yourAnswer": "Your answer: {answer}",
+    "@yourAnswer": {
+        "placeholders": {
+            "answer": {}
+        }
+    },
+    "correct": "Correct",
+    "wrong": "Wrong",
+    "correctAnswer": "Correct answer: {answer}",
+    "@correctAnswer": {
+        "placeholders": {
+            "answer": {}
+        }
+    },
+    "playAgain": "Play Again",
+    "enterName": "Enter your name",
+    "ok": "OK",
+    "selectLanguage": "Select Language"
+}

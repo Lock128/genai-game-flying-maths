@@ -6,6 +6,9 @@ import 'package:amplify_authenticator/amplify_authenticator.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flag/flag.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'amplifyconfiguration.dart';
 import 'game_components.dart';
@@ -28,28 +31,64 @@ Future<void> _configureAmplify() async {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Locale _currentLocale = const Locale('de');
+
+  void setLocale(Locale locale) {
+    setState(() {
+      _currentLocale = locale;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Authenticator(
       child: MaterialApp(
         builder: Authenticator.builder(),
-        title: 'Flying Maths',
+        onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('de'),
+          Locale('en'),
+          Locale('tr'),
+          Locale('pl'),
+          Locale('es'),
+          Locale('ar'),
+        ],
+        locale: _currentLocale,
         theme: ThemeData(
           primarySwatch: Colors.blue,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.blueAccent,
+            foregroundColor: Colors.white,
+            elevation: 4,
+          ),
         ),
-        home: const MyHomePage(title: 'Flying Maths'),
+        home: MyHomePage(
+          onLanguageChanged: setLocale,
+        ),
       ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({Key? key, required this.onLanguageChanged})
+      : super(key: key);
 
-  final String title;
+  final void Function(Locale) onLanguageChanged;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -68,6 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Map<String, dynamic>> _challenges = [];
   late List<String> _currentPossibleAnswers;
   late String _currentCorrectAnswer;
+  late Locale _currentLocale = Locale('de');
 
   @override
   void initState() {
@@ -109,7 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Enter your name'),
+          title: Text(AppLocalizations.of(context)!.enterName),
           content: TextField(
             autofocus: true,
             onChanged: (value) {
@@ -118,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -132,9 +172,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _startGame() async {
     try {
+          // Get player name
+     _playerName = await _getPlayerName();
+    if (_playerName.isEmpty) {
+      _playerName = 'Anonymous';
+    }
       final restOperation = Amplify.API.mutate(
-        request: GraphQLRequest<String>(
-          document: '''
+        request: GraphQLRequest<String>(document: '''
             mutation StartGame {
               startGame(difficulty: "$_difficulty") {
                 id
@@ -145,8 +189,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 }
               }
             }
-          '''
-        ),
+          '''),
       );
 
       final response = await restOperation.response;
@@ -233,16 +276,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<String> _generatePossibleAnswers() {
     // Calculate correct answer
+    print("Generating possible answers for ${_currentQuestion}");
     String correctAnswer = _currentCorrectAnswer;
     int correct = int.parse(correctAnswer);
+    print("Correct answer: $correctAnswer");
 
     // Generate 4 wrong answers within a reasonable range
     final random = math.Random();
     Set<String> answers = {correctAnswer}; // Use Set to ensure uniqueness
 
     // Generate wrong answers based on operation type
-    while (answers.length < 6) {
+    int iter = 0;
+    while (answers.length < 6 && iter<100) {
       int wrongAnswer;
+      iter++;
       // Extract operation from question
       String operation = _currentQuestion.split(' ')[1];
 
@@ -262,9 +309,12 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       // Only add if it's different from correct answer and makes sense
-      if (wrongAnswer != correct && wrongAnswer > 0) {
+      if (wrongAnswer != correct) {
         answers.add(wrongAnswer.toString());
       }
+    }
+    if (iter == 100) {
+      _showError('Failed to generate enough unique answers');
     }
 
     // Convert Set back to List and shuffle
@@ -276,70 +326,96 @@ class _MyHomePageState extends State<MyHomePage> {
     return answersList;
   }
 
-String _calculateCorrectAnswer() {
-  // Parse the current question to get the numbers and operators
-  final parts = _currentQuestion.split(' ');
-  print("Calculating correct answer for ${_currentQuestion}");
-  
-  // Handle expressions with 3 operands (e.g., "2 + 3 + 4" or "2 * 3 + 4")
-  if (parts.length >= 5) {  // 3 numbers and 2 operators
-    int num1 = int.parse(parts[0]);
-    String operator1 = parts[1];
-    int num2 = int.parse(parts[2]);
-    String operator2 = parts[3];
-    int num3 = int.parse(parts[4]);
+  String _calculateCorrectAnswer() {
+    // Parse the current question to get the numbers and operators
+    final parts = _currentQuestion.split(' ');
+    print("Calculating correct answer for ${_currentQuestion}");
 
-    // First, evaluate operations according to operator precedence
-    // Multiplication and division take precedence over addition and subtraction
-    if ((operator1 == '*' || operator1 == '/') && (operator2 == '+' || operator2 == '-')) {
-      // Evaluate first operation first
-      int intermediateResult = _evaluateOperation(num1, operator1, num2);
-      // Then evaluate second operation
-      return _evaluateOperation(intermediateResult, operator2, num3).toString();
-    } else if ((operator2 == '*' || operator2 == '/') && (operator1 == '+' || operator1 == '-')) {
-      // Evaluate second operation first
-      int intermediateResult = _evaluateOperation(num2, operator2, num3);
-      // Then evaluate with first number
-      return _evaluateOperation(num1, operator1, intermediateResult).toString();
-    } else {
-      // If operators have same precedence, evaluate left to right
-      int intermediateResult = _evaluateOperation(num1, operator1, num2);
-      return _evaluateOperation(intermediateResult, operator2, num3).toString();
-    }
-  } else {
-    // Handle simple expressions with 2 operands
-    int num1 = int.parse(parts[0]);
-    String operator = parts[1];
-    int num2 = int.parse(parts[2]);
-    return _evaluateOperation(num1, operator, num2).toString();
-  }
-}
+    // Handle expressions with 3 operands (e.g., "2 + 3 + 4" or "2 * 3 + 4")
+    if (parts.length >= 5) {
+      // 3 numbers and 2 operators
+      int num1 = int.parse(parts[0]);
+      String operator1 = parts[1];
+      int num2 = int.parse(parts[2]);
+      String operator2 = parts[3];
+      int num3 = int.parse(parts[4]);
 
-int _evaluateOperation(int num1, String operator, int num2) {
-  print("Evaluating $num1 $operator $num2");
-  switch (operator) {
-    case '+':
-      print("Result: ${num1 + num2}");
-      return num1 + num2;
-    case '-':
-      print("Result: ${num1 - num2}");
-      return num1 - num2;
-    case '*':
-    print("Result: ${num1 * num2}");
-      return num1 * num2;
-    case '/':
-      // Handle division carefully to avoid runtime errors
-      if (num2 == 0) {
-        throw Exception('Division by zero');
+      // First, evaluate operations according to operator precedence
+      // Multiplication and division take precedence over addition and subtraction
+      if ((operator1 == '*' || operator1 == '/') &&
+          (operator2 == '+' || operator2 == '-')) {
+        // Evaluate first operation first
+        int intermediateResult = _evaluateOperation(num1, operator1, num2);
+        print("Result 1: $intermediateResult");
+        // Then evaluate second operation
+
+        int thisresult =
+            _evaluateOperation(intermediateResult, operator2, num3);
+        // print this result
+        print("Result 2: $thisresult");
+        return thisresult.toString();
+      } else if ((operator2 == '*' || operator2 == '/') &&
+          (operator1 == '+' || operator1 == '-')) {
+        // Evaluate second operation first
+        int intermediateResult = _evaluateOperation(num2, operator2, num3);
+        print("Result 3: $intermediateResult");
+        // Then evaluate with first number
+
+        int thisresult =
+            _evaluateOperation(num1, operator1, intermediateResult);
+        // print this result
+        print("Result 4: $thisresult");
+        return thisresult.toString();
+      } else {
+        // If operators have same precedence, evaluate left to right
+        int intermediateResult = _evaluateOperation(num1, operator1, num2);
+        print("Result 5: $intermediateResult");
+        int thisresult =
+            _evaluateOperation(intermediateResult, operator2, num3);
+        // print this result
+        print("Result 6: $thisresult");
+        return thisresult.toString();
       }
-      print("Result: ${num1 ~/ num2}");
-      return num1 ~/ num2; // Using integer division
-    default:
-      throw Exception('Unknown operator: $operator');
+    } else {
+      // Handle simple expressions with 2 operands
+      int num1 = int.parse(parts[0]);
+      String operator = parts[1];
+      int num2 = int.parse(parts[2]);
+
+      int thisresult = _evaluateOperation(num1, operator, num2);
+      // print this result
+      print("Result 7: $thisresult");
+      return thisresult.toString();
+    }
   }
-}
+
+  int _evaluateOperation(int num1, String operator, int num2) {
+    print("Evaluating $num1 $operator $num2");
+    switch (operator) {
+      case '+':
+        print("Result: ${num1 + num2}");
+        return num1 + num2;
+      case '-':
+        print("Result: ${num1 - num2}");
+        return num1 - num2;
+      case '*':
+        print("Result: ${num1 * num2}");
+        return num1 * num2;
+      case '/':
+        // Handle division carefully to avoid runtime errors
+        if (num2 == 0) {
+          throw Exception('Division by zero');
+        }
+        print("Result: ${num1 ~/ num2}");
+        return num1 ~/ num2; // Using integer division
+      default:
+        throw Exception('Unknown operator: $operator');
+    }
+  }
 
   List<Map<String, dynamic>> _gameResults = [];
+  
+  late String _playerName;
 
   Future<void> _checkAnswer() async {
     if (_answerController.text.isEmpty) {
@@ -360,13 +436,11 @@ int _evaluateOperation(int num1, String operator, int num2) {
       print('User answer: $userAnswer');
 
       final restOperation = Amplify.API.mutate(
-        request: GraphQLRequest<String>(
-          document: '''
+        request: GraphQLRequest<String>(document: '''
           mutation SubmitChallenge {
             submitChallenge(gameId: "$_gameId", challengeId: "$challengeId", answer: $userAnswer)
           }
-        '''
-        ),
+        '''),
       );
 
       final response = await restOperation.response;
@@ -415,20 +489,18 @@ int _evaluateOperation(int num1, String operator, int num2) {
     //show notification bar in app that t he game ended
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Game ended. Score: $_score'),
+        content: Text(AppLocalizations.of(context)!.gameEnded(_score)),
         duration: const Duration(seconds: 3),
       ),
     );
 
-    // Get player name
-    String playerName = await _getPlayerName();
+
     try {
       // Ensure we're using mounted check before any setState calls
       if (!mounted) return;
 
       final restOperation = Amplify.API.query(
-        request: GraphQLRequest<String>(
-          document: '''
+        request: GraphQLRequest<String>(document: '''
             query GetGameResult {
               getGameResult(gameId: "$_gameId") {
                 totalChallenges
@@ -436,8 +508,7 @@ int _evaluateOperation(int num1, String operator, int num2) {
                 completionTime
               }
             }
-          '''
-        ),
+          '''),
       );
 
       final response = await restOperation.response;
@@ -485,13 +556,15 @@ int _evaluateOperation(int num1, String operator, int num2) {
       MaterialPageRoute(
         builder: (context) => Scaffold(
           appBar: AppBar(
-            title: const Text('Game Results'),
+            title: Text(AppLocalizations.of(context)!.appTitle),
             automaticallyImplyLeading: false,
           ),
           body: ResultsScreen(
             totalChallenges: gameResult['totalChallenges'],
             correctAnswers: gameResult['correctAnswers'],
             challengeResults: _gameResults,
+            score: _score,
+            playerName: _playerName,
             onPlayAgain: () {
               Navigator.of(context).pop();
               _startGame();
@@ -506,7 +579,57 @@ int _evaluateOperation(int num1, String operator, int num2) {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text(widget.title),
+          title: Text(AppLocalizations.of(context)!.appTitle),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: DropdownButton<String>(
+                underline: const SizedBox(),
+                icon: const Icon(Icons.language, color: Colors.white),
+                dropdownColor: Colors.blue,
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    Locale newLocale = Locale(newValue);
+                    Localizations.override(
+                      context: context,
+                      locale: newLocale,
+                      child: widget,
+                    );
+                    setState(() {
+                      _currentLocale = newLocale;
+                    });
+                    widget.onLanguageChanged(_currentLocale);
+                  }
+                },
+                items: const [
+                  DropdownMenuItem(
+                    value: 'de',
+                    child: Flag.fromCode(FlagsCode.DE, height: 20, width: 30),
+                  ),
+                  DropdownMenuItem(
+                    value: 'en',
+                    child: Flag.fromCode(FlagsCode.GB, height: 20, width: 30),
+                  ),
+                  DropdownMenuItem(
+                    value: 'tr',
+                    child: Flag.fromCode(FlagsCode.TR, height: 20, width: 30),
+                  ),
+                  DropdownMenuItem(
+                    value: 'pl',
+                    child: Flag.fromCode(FlagsCode.PL, height: 20, width: 30),
+                  ),
+                  DropdownMenuItem(
+                    value: 'es',
+                    child: Flag.fromCode(FlagsCode.ES, height: 20, width: 30),
+                  ),
+                  DropdownMenuItem(
+                    value: 'ar',
+                    child: Flag.fromCode(FlagsCode.SY, height: 20, width: 30),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         body: Column(children: [
           Container(
@@ -522,15 +645,21 @@ int _evaluateOperation(int num1, String operator, int num2) {
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Text('Score: $_score',
+                        Text(
+                            AppLocalizations.of(context)!
+                                .score(_score.toString()),
                             style: const TextStyle(fontSize: 18)),
                         const SizedBox(height: 20),
-                        Text('Time left: $_timeLeft seconds',
+                        Text(
+                            AppLocalizations.of(context)!
+                                .timeLeft(_timeLeft.toString()),
                             style: const TextStyle(fontSize: 18)),
                         const SizedBox(height: 20),
                         GamePlayArea(
-                          question:
-                              'Problem ${_currentProblem + 1}: $_currentQuestion',
+                          question: AppLocalizations.of(context)!.problem(
+                            (_currentProblem + 1).toString(),
+                            _currentQuestion,
+                          ),
                           possibleAnswers: _currentPossibleAnswers,
                           correctAnswer: _currentCorrectAnswer,
                           onAnswerSubmitted: (isCorrect, selectedAnswer) async {
@@ -543,8 +672,8 @@ int _evaluateOperation(int num1, String operator, int num2) {
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        const Text('Select difficulty:',
-                            style: TextStyle(fontSize: 18)),
+                        Text(AppLocalizations.of(context)!.selectDifficulty,
+                            style: const TextStyle(fontSize: 18)),
                         const SizedBox(height: 20),
                         DropdownButton<String>(
                           value: _difficulty,
@@ -557,14 +686,18 @@ int _evaluateOperation(int num1, String operator, int num2) {
                               .map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
-                              child: Text(value),
+                              child: Text(value == 'easy'
+                                  ? AppLocalizations.of(context)!.easy
+                                  : value == 'medium'
+                                      ? AppLocalizations.of(context)!.medium
+                                      : AppLocalizations.of(context)!.hard),
                             );
                           }).toList(),
                         ),
                         const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: _startGame,
-                          child: const Text('Start Game'),
+                          child: Text(AppLocalizations.of(context)!.startGame),
                         ),
                       ],
                     ),

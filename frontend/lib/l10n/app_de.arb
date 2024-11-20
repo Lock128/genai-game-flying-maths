@@ -1,0 +1,55 @@
+{
+    "appTitle": "Fliegende Mathematik",
+    "score": "Punktzahl: {score}",
+    "@score": {
+        "placeholders": {
+            "score": {}
+        }
+    },
+    "timeLeft": "Verbleibende Zeit: {seconds} Sekunden",
+    "@timeLeft": {
+        "placeholders": {
+            "seconds": {}
+        }
+    },
+    "selectDifficulty": "Schwierigkeit auswählen:",
+    "easy": "Leicht",
+    "medium": "Mittel",
+    "hard": "Schwer",
+    "startGame": "Spiel starten",
+    "problem": "Problem {number}: {question}",
+    "@problem": {
+        "placeholders": {
+            "number": {},
+            "question": {}
+        }
+    },
+    "gameResults": "Spielergebnisse",
+    "gameEnded": "Das Spiel ist zu Ende. Score: {score}",
+    "playerName": "Hallo {playerName} - das hast du gut gemacht!",
+    "finalScore": "Endergebnis: {correct} / {total}",
+    "@finalScore": {
+        "placeholders": {
+            "correct": {},
+            "total": {}
+        }
+    },
+    "yourAnswer": "Deine Antwort: {answer}",
+    "@yourAnswer": {
+        "placeholders": {
+            "answer": {}
+        }
+    },
+    "correct": "Richtig",
+    "wrong": "Falsch",
+    "correctAnswer": "Richtige Antwort: {answer}",
+    "@correctAnswer": {
+        "placeholders": {
+            "answer": {}
+        }
+    },
+    "playAgain": "Nochmal spielen",
+    "enterName": "Gib deinen Namen ein",
+    "ok": "OK",
+    "selectLanguage": "Sprache auswählen"
+}

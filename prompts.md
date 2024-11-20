@@ -128,3 +128,14 @@ Please also ensure that the application does not switch to the "main" screen aft
 
 Please adjust the project in a way that the user input when starting a game (difficulty: easy, medium, hard) has an input on the generated challenges and based on the difficulty the challenges will be different. For "easy" is should be only plus and minus challenges, medium it can include multiplications and divisions. hard should have bigger numbers as part of the challenges.
 While you're working on this, please verify why the "game end" information have not been displayed to the user when I last played the game.
+
+
+# prompt for multi-language
+I would like to add multi-language to the frontend application. Right now it is english and has texts inline. 
+Please make the Flutter application multi-language, the default language should be german. the user should get the possibility to change the language from German to either English, Turkish, Polish, Spanish or Syrian using a drop-down menu that shows the flags of the countries.
+
+## fix1?
+While you where working I change the main.dart - please review again and don't change my print lines that I added. Please also verify if the game_components.dart has any texts
+
+## fix2?
+in the main.dart - in the method _calculateCorrectAnswer i have added some prints that you are removing because they are new - can you please remove your changes in that method from the patch? thanks.

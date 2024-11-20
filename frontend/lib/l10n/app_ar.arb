@@ -1,0 +1,55 @@
+{
+    "appTitle": "الرياضيات الطائرة",
+    "score": "النتيجة: {score}",
+    "@score": {
+        "placeholders": {
+            "score": {}
+        }
+    },
+    "timeLeft": "الوقت المتبقي: {seconds} ثانية",
+    "@timeLeft": {
+        "placeholders": {
+            "seconds": {}
+        }
+    },
+    "selectDifficulty": "اختر المستوى:",
+    "easy": "سهل",
+    "medium": "متوسط",
+    "hard": "صعب",
+    "startGame": "ابدأ اللعبة",
+    "problem": "المسألة {number}: {question}",
+    "@problem": {
+        "placeholders": {
+            "number": {},
+            "question": {}
+        }
+    },
+    "gameResults": "نتائج اللعبة",
+    "gameEnded": "Game ended. Score: {score}",
+    "playerName": "{playerName}",
+    "finalScore": "النتيجة النهائية: {correct} / {total}",
+    "@finalScore": {
+        "placeholders": {
+            "correct": {},
+            "total": {}
+        }
+    },
+    "yourAnswer": "إجابتك: {answer}",
+    "@yourAnswer": {
+        "placeholders": {
+            "answer": {}
+        }
+    },
+    "correct": "صحيح",
+    "wrong": "خطأ",
+    "correctAnswer": "الإجابة الصحيحة: {answer}",
+    "@correctAnswer": {
+        "placeholders": {
+            "answer": {}
+        }
+    },
+    "playAgain": "العب مرة أخرى",
+    "enterName": "أدخل اسمك",
+    "ok": "موافق",
+    "selectLanguage": "اختر اللغة"
+}

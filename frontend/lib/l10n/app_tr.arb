@@ -1,0 +1,55 @@
+{
+    "appTitle": "Uçan Matematik",
+    "score": "Puan: {score}",
+    "@score": {
+        "placeholders": {
+            "score": {}
+        }
+    },
+    "timeLeft": "Kalan süre: {seconds} saniye",
+    "@timeLeft": {
+        "placeholders": {
+            "seconds": {}
+        }
+    },
+    "selectDifficulty": "Zorluk seçin:",
+    "easy": "Kolay",
+    "medium": "Orta",
+    "hard": "Zor",
+    "startGame": "Oyunu Başlat",
+    "problem": "Soru {number}: {question}",
+    "@problem": {
+        "placeholders": {
+            "number": {},
+            "question": {}
+        }
+    },
+    "gameResults": "Oyun Sonuçları",
+    "gameEnded": "Game ended. Score: {score}",
+    "playerName": "{playerName}",
+    "finalScore": "Sonuç: {correct} / {total}",
+    "@finalScore": {
+        "placeholders": {
+            "correct": {},
+            "total": {}
+        }
+    },
+    "yourAnswer": "Cevabınız: {answer}",
+    "@yourAnswer": {
+        "placeholders": {
+            "answer": {}
+        }
+    },
+    "correct": "Doğru",
+    "wrong": "Yanlış",
+    "correctAnswer": "Doğru cevap: {answer}",
+    "@correctAnswer": {
+        "placeholders": {
+            "answer": {}
+        }
+    },
+    "playAgain": "Tekrar Oyna",
+    "enterName": "Adınızı girin",
+    "ok": "Tamam",
+    "selectLanguage": "Dil Seçin"
+}

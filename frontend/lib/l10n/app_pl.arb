@@ -1,0 +1,55 @@
+{
+    "appTitle": "Latająca Matematyka",
+    "score": "Wynik: {score}",
+    "@score": {
+        "placeholders": {
+            "score": {}
+        }
+    },
+    "timeLeft": "Pozostały czas: {seconds} sekund",
+    "@timeLeft": {
+        "placeholders": {
+            "seconds": {}
+        }
+    },
+    "selectDifficulty": "Wybierz poziom trudności:",
+    "easy": "Łatwy",
+    "medium": "Średni",
+    "hard": "Trudny",
+    "startGame": "Rozpocznij Grę",
+    "problem": "Zadanie {number}: {question}",
+    "@problem": {
+        "placeholders": {
+            "number": {},
+            "question": {}
+        }
+    },
+    "gameResults": "Wyniki Gry",
+    "gameEnded": "Game ended. Score: {score}",
+    "playerName": "{playerName}",
+    "finalScore": "Wynik: {correct} / {total}",
+    "@finalScore": {
+        "placeholders": {
+            "correct": {},
+            "total": {}
+        }
+    },
+    "yourAnswer": "Twoja odpowiedź: {answer}",
+    "@yourAnswer": {
+        "placeholders": {
+            "answer": {}
+        }
+    },
+    "correct": "Poprawnie",
+    "wrong": "Błędnie",
+    "correctAnswer": "Prawidłowa odpowiedź: {answer}",
+    "@correctAnswer": {
+        "placeholders": {
+            "answer": {}
+        }
+    },
+    "playAgain": "Zagraj Ponownie",
+    "enterName": "Wpisz swoje imię",
+    "ok": "OK",
+    "selectLanguage": "Wybierz Język"
+}
