@@ -109,7 +109,10 @@ class _MyHomePageState extends State<MyHomePage> {
   late List<String> _currentPossibleAnswers;
   late String _currentCorrectAnswer;
   late Locale _currentLocale = Locale('de');
+  List<Map<String, dynamic>> _gameResults = [];
 
+  String _playerName = 'Anonymous';
+  bool playerNameSet = false;
   @override
   void initState() {
     super.initState();
@@ -173,14 +176,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _startGame() async {
     try {
-          // Get player name
-    
-    if (_playerName.isEmpty) {
-      _playerName = 'Anonymous';
-      if (_playerName=='Anonymous') {
-          _playerName = await _getPlayerName();
+      if (_playerName == 'Anonymous' && !playerNameSet) {
+        _playerName = await _getPlayerName();
+        playerNameSet = true;
       }
-    }
       final restOperation = Amplify.API.mutate(
         request: GraphQLRequest<String>(document: '''
             mutation StartGame {
@@ -292,7 +291,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Generate wrong answers based on operation type
     int iter = 0;
-    while (answers.length < 6 && iter<100) {
+    while (answers.length < 6 && iter < 100) {
       int wrongAnswer;
       iter++;
       // Extract operation from question
@@ -334,10 +333,6 @@ class _MyHomePageState extends State<MyHomePage> {
   String _calculateCorrectAnswer() {
     return calculateCorrectAnswer(_currentQuestion);
   }
-
-  List<Map<String, dynamic>> _gameResults = [];
-  
-  late String _playerName;
 
   Future<void> _checkAnswer() async {
     if (_answerController.text.isEmpty) {
@@ -415,7 +410,6 @@ class _MyHomePageState extends State<MyHomePage> {
         duration: const Duration(seconds: 3),
       ),
     );
-
 
     try {
       // Ensure we're using mounted check before any setState calls
