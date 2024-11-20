@@ -52,7 +52,7 @@ class ResultsScreen extends StatelessWidget {
                   result['question'],
                 )),
                 subtitle: Text(
-                  '${AppLocalizations.of(context)!.yourAnswer(result['userAnswer'])} (${result['isCorrect'] ? AppLocalizations.of(context)!.correct : AppLocalizations.of(context)!.wrong}) \n${AppLocalizations.of(context)!.correctAnswer(correctAnswers[index])}'
+                  '${AppLocalizations.of(context)!.yourAnswer(result['userAnswer'])} (${result['isCorrect'] ? AppLocalizations.of(context)!.correct : AppLocalizations.of(context)!.wrong}) \n${AppLocalizations.of(context)!.correctAnswer(0)}'
                 ),
                 leading: Icon(
                   result['isCorrect'] ? Icons.check_circle : Icons.cancel,
