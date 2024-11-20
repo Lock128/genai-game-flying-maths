@@ -55,7 +55,7 @@ class ResultsScreen extends StatelessWidget {
                   question,
                 )),
                 subtitle: Text(
-                  '${AppLocalizations.of(context)!.yourAnswer(result['userAnswer'])} | Correct: $correctAnswer'rrect'] ? AppLocalizations.of(context)!.correct : AppLocalizations.of(context)!.wrong}) \n${AppLocalizations.of(context)!.correctAnswer(correctAnswers[index])}'
+                  '${AppLocalizations.of(context)!.yourAnswer(result['userAnswer'])} (${result['isCorrect'] ? AppLocalizations.of(context)!.correct : AppLocalizations.of(context)!.wrong}) \n${AppLocalizations.of(context)!.correctAnswer(correctAnswer)}'
                 ),
                 leading: Icon(
                   result['isCorrect'] ? Icons.check_circle : Icons.cancel,
