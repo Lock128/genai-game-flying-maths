@@ -577,9 +577,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         const SizedBox(height: 20),
                         GamePlayArea(
                           question: AppLocalizations.of(context)!.problem(
-                            (_currentProblem + 1).toString(),
-                            _currentQuestion,
-                          ),
+                            (_currentProblem + 1).toString()),
+                          task: _currentQuestion,
                           possibleAnswers: _currentPossibleAnswers,
                           correctAnswer: _currentCorrectAnswer,
                           onAnswerSubmitted: (isCorrect, selectedAnswer) async {

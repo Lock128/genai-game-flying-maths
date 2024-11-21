@@ -53,9 +53,7 @@ class ResultsScreen extends StatelessWidget {
               final correctAnswer = calculateCorrectAnswer(question);
               return ListTile(
                 title: Text(AppLocalizations.of(context)!.problem(
-                  (index + 1).toString(),
-                  question,
-                )),
+                  (index + 1).toString())+ " "+ question),
                 subtitle: Text(
                   '${AppLocalizations.of(context)!.yourAnswer(result['userAnswer'])} (${result['isCorrect'] ? AppLocalizations.of(context)!.correct : AppLocalizations.of(context)!.wrong}) \n${AppLocalizations.of(context)!.correctAnswer(correctAnswer)}'
                 ),

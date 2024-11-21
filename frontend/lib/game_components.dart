@@ -27,6 +27,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
   late Animation<double> _animation;
   bool _isVisible = false;
   bool _isStopped = false;
+  bool? _isCorrectAnswer;
 
   @override
   void initState() {
@@ -35,7 +36,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
     // Initialize the animation controller
     _controller = AnimationController(
       duration:
-          const Duration(milliseconds: 8000), // 8 seconds to cross screen
+          const Duration(milliseconds: 10000), // 8 seconds to cross screen
       vsync: this,
     );
 
@@ -67,7 +68,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
         return Positioned(
           // Calculate position based on screen width
           left: (screenWidth * _animation.value),
-          top: 70.0 + (widget.index * 100.0), // Vertical spacing between items
+          top: 100.0 + (widget.index * 85.0), // Vertical spacing between items
           child: Opacity(
             opacity: _isVisible ? 1.0 : 0.0,
             child: GestureDetector(
@@ -75,6 +76,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
                 if (!_isStopped) {
                   setState(() {
                     _isStopped = true;
+                    _isCorrectAnswer = widget.isCorrect;
                   });
                   _controller.stop();
                   widget.onTap();
@@ -84,7 +86,11 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
                 width: 180,
                 height: 55,
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade500,
+                  color: _isCorrectAnswer == null 
+                      ? Colors.blue.shade500
+                      : _isCorrectAnswer! 
+                          ? Colors.green.shade500
+                          : Colors.red.shade500,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: Colors.white,
@@ -148,6 +154,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
 
 class GamePlayArea extends StatefulWidget {
   final String question;
+  final String task;
   final List<String> possibleAnswers;
   final String correctAnswer;
   final Function(bool, String) onAnswerSubmitted;
@@ -155,6 +162,7 @@ class GamePlayArea extends StatefulWidget {
   const GamePlayArea({
     Key? key,
     required this.question,
+    required this.task,
     required this.possibleAnswers,
     required this.correctAnswer,
     required this.onAnswerSubmitted,
@@ -196,6 +204,21 @@ class _GamePlayAreaState extends State<GamePlayArea> {
                           widget.question,
                           style: const TextStyle(
                             fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 50,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Text(
+                          widget.task,
+                          style: const TextStyle(
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,

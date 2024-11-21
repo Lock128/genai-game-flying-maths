@@ -17,13 +17,7 @@
     "medium": "Mittel",
     "hard": "Schwer",
     "startGame": "Spiel starten",
-    "problem": "Aufgabe {number}: {question}",
-    "@problem": {
-        "placeholders": {
-            "number": {},
-            "question": {}
-        }
-    },
+    "problem": "Aufgabe {number}:",
     "home": "Schwierigkeit ändern",
     "selectAnswer": "Bitte wähle eine Antwort aus.",
     "gameResults": "Spielergebnisse",

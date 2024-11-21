@@ -17,13 +17,7 @@
     "medium": "متوسط",
     "hard": "صعب",
     "startGame": "ابدأ اللعبة",
-    "problem": "المسألة {number}: {question}",
-    "@problem": {
-        "placeholders": {
-            "number": {},
-            "question": {}
-        }
-    },
+    "problem": "المسألة {number}:",
     "home": "Change difficulty",
     "selectAnswer": "Please select an answer",
     "gameResults": "نتائج اللعبة",

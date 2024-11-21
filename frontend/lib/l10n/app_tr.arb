@@ -17,13 +17,7 @@
     "medium": "Orta",
     "hard": "Zor",
     "startGame": "Oyunu Başlat",
-    "problem": "Soru {number}: {question}",
-    "@problem": {
-        "placeholders": {
-            "number": {},
-            "question": {}
-        }
-    },
+    "problem": "Soru {number}:",
     "home": "Change difficulty",
     "selectAnswer": "Please select an answer",
     "gameResults": "Oyun Sonuçları",
