@@ -35,7 +35,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
     // Initialize the animation controller
     _controller = AnimationController(
       duration:
-          const Duration(milliseconds: 15000), // 8 seconds to cross screen
+          const Duration(milliseconds: 8000), // 8 seconds to cross screen
       vsync: this,
     );
 
@@ -67,7 +67,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
         return Positioned(
           // Calculate position based on screen width
           left: (screenWidth * _animation.value),
-          top: 50.0 + (widget.index * 70.0), // Vertical spacing between items
+          top: 70.0 + (widget.index * 100.0), // Vertical spacing between items
           child: Opacity(
             opacity: _isVisible ? 1.0 : 0.0,
             child: GestureDetector(

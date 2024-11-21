@@ -291,7 +291,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Generate wrong answers based on operation type
     int iter = 0;
-    while (answers.length < 6 && iter < 100) {
+    while (answers.length < 3 && iter < 100) {
       int wrongAnswer;
       iter++;
       // Extract operation from question

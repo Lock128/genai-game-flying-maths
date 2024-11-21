@@ -17,7 +17,7 @@
     "medium": "Mittel",
     "hard": "Schwer",
     "startGame": "Spiel starten",
-    "problem": "Problem {number}: {question}",
+    "problem": "Aufgabe {number}: {question}",
     "@problem": {
         "placeholders": {
             "number": {},
