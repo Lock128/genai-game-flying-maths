@@ -143,4 +143,9 @@ in the main.dart - in the method _calculateCorrectAnswer i have added some print
 # allow access without a user
 If you look at the complete project, you will see that the Frontend uses Amplify UI to authenticated against cognito. The user identity is then used to allow access to graphql. 
 Can you add an option to access the app without having an account?
+In order to make that happen, you will need to update the Cognito Settings in the backend, the graphql schema and settings and also create an IAM role for unauthenticated access.
+Please add sensible rate-limits to the unauthenticated access to GraphQL.
+You will also need to update the frontend to allow the user to to access the game without auth - I propose that we make the unauthenticated version the default and that log in and using an account is an optional thing that you can do if you want to.
+Please make sure that the userId of the user, if he is logged in, is stored on the backend database tables as part of this change.
+Also fix the build errors and compile issues.
 
