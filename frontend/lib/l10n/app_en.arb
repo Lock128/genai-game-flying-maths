@@ -12,6 +12,7 @@
             "seconds": {}
         }
     },
+    "signIn": "Sign in",
     "selectDifficulty": "Select difficulty:",
     "easy": "Easy",
     "medium": "Medium",

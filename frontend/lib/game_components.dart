@@ -10,12 +10,12 @@ class AnimatedAnswerBox extends StatefulWidget {
   final int index;
 
   const AnimatedAnswerBox({
-    Key? key,
+    super.key,
     required this.answer,
     required this.isCorrect,
     required this.onTap,
     required this.index,
-  }) : super(key: key);
+  });
 
   @override
   _AnimatedAnswerBoxState createState() => _AnimatedAnswerBoxState();
@@ -160,13 +160,13 @@ class GamePlayArea extends StatefulWidget {
   final Function(bool, String) onAnswerSubmitted;
 
   const GamePlayArea({
-    Key? key,
+    super.key,
     required this.question,
     required this.task,
     required this.possibleAnswers,
     required this.correctAnswer,
     required this.onAnswerSubmitted,
-  }) : super(key: key);
+  });
 
   @override
   _GamePlayAreaState createState() => _GamePlayAreaState();
@@ -190,7 +190,7 @@ class _GamePlayAreaState extends State<GamePlayArea> {
               constraints: BoxConstraints(
                 minHeight: constraints.maxHeight,
               ),
-              child: Container(
+              child: SizedBox(
                 width: double.infinity,
                 height: 600,
                 child: Stack(
@@ -240,7 +240,7 @@ class _GamePlayAreaState extends State<GamePlayArea> {
                             widget.onAnswerSubmitted(isCorrect, answer),
                         index: index,
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               )));

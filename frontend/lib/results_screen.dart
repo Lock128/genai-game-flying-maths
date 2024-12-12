@@ -12,7 +12,7 @@ class ResultsScreen extends StatelessWidget {
   final String playerName;
 
   const ResultsScreen({
-    Key? key,
+    super.key,
     required this.totalChallenges,
     required this.correctAnswers,
     required this.challengeResults,
@@ -20,7 +20,7 @@ class ResultsScreen extends StatelessWidget {
     required this.onPlayAgain, 
     required this.onMainPage,
     required this.playerName,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +52,8 @@ class ResultsScreen extends StatelessWidget {
               final question = result['question'];
               final correctAnswer = calculateCorrectAnswer(question);
               return ListTile(
-                title: Text(AppLocalizations.of(context)!.problem(
-                  (index + 1).toString())+ " "+ question),
+                title: Text("${AppLocalizations.of(context)!.problem(
+                  (index + 1).toString())} "+ question),
                 subtitle: Text(
                   '${AppLocalizations.of(context)!.yourAnswer(result['userAnswer'])} (${result['isCorrect'] ? AppLocalizations.of(context)!.correct : AppLocalizations.of(context)!.wrong}) \n${AppLocalizations.of(context)!.correctAnswer(correctAnswer)}'
                 ),
