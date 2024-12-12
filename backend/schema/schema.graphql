@@ -33,17 +33,17 @@ input UpdateUserProfileInput {
 }
 
 type Mutation {
-  updateUserProfile(input: UpdateUserProfileInput!): User!
-  startGame(difficulty: String!): Game!
-  submitChallenge(gameId: ID!, challengeId: ID!, answer: Int!): Boolean!
-  endGame(gameId: ID!): GameResult!
-}
+  updateUserProfile(input: UpdateUserProfileInput!): User! @aws_cognito_user_pools
+  startGame(difficulty: String!): Game! @aws_api_key @aws_iam
+  submitChallenge(gameId: ID!, challengeId: ID!, answer: Int!): Boolean! @aws_api_key @aws_iam
+  endGame(gameId: ID!): GameResult! @aws_api_key @aws_iam
+} @aws_api_key @aws_iam
 
 type Query {
-  getUser: User!
-  getGameResult(gameId: ID!): GameResult!
-  getLeaderboard(limit: Int): [GameResult!]!
-}
+  getUser: User! @aws_cognito_user_pools
+  getGameResult(gameId: ID!): GameResult! @aws_api_key @aws_iam
+  getLeaderboard(limit: Int): [GameResult!]! @aws_api_key @aws_iam
+} @aws_api_key @aws_iam @aws_cognito_user_pools @rateLimit(max: 100, window: "10m", by: "ip")
 
 schema {
   query: Query

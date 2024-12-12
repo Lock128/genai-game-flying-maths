@@ -33,12 +33,54 @@ export class FlyingMathsBackendStack extends cdk.Stack {
 
     // Create the Identity Pool
     const identityPool = new cognito.CfnIdentityPool(this, 'GameIdentityPool', {
-      allowUnauthenticatedIdentities: false, // Set to true if you want to support unauthorized users
+      allowUnauthenticatedIdentities: true,
       cognitoIdentityProviders: [{
         clientId: userPoolClient.userPoolClientId,
         providerName: userPool.userPoolProviderName,
       }],
       identityPoolName: 'GameIdentityPool'
+    });
+
+    // Create IAM roles
+    const unauthRole = new iam.Role(this, 'CognitoDefaultUnauthenticatedRole', {
+      assumedBy: new iam.FederatedPrincipal(
+        'cognito-identity.amazonaws.com',
+        {
+          StringEquals: {
+            'cognito-identity.amazonaws.com:aud': identityPool.ref
+          },
+          'ForAnyValue:StringLike': {
+            'cognito-identity.amazonaws.com:amr': 'unauthenticated'
+          }
+        },
+        'sts:AssumeRoleWithWebIdentity'
+      )
+    });
+
+    // Add policies for unauthenticated role
+    unauthRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'appsync:GraphQL'
+        ],
+        resources: [
+          `\${api.arn}/types/Query/fields/getLeaderboard`,
+          `\${api.arn}/types/Query/fields/getGameResult`,
+          `\${api.arn}/types/Mutation/fields/startGame`,
+          `\${api.arn}/types/Mutation/fields/submitChallenge`,
+          `\${api.arn}/types/Mutation/fields/endGame`
+        ]
+      })
+    );
+
+    // Attach roles to identity pool
+    new cognito.CfnIdentityPoolRoleAttachment(this, 'IdentityPoolRoleAttachment', {
+      identityPoolId: identityPool.ref,
+      roles: {
+        authenticated: authenticatedRole.roleArn,
+        unauthenticated: unauthRole.roleArn
+      }
     });
 
     // Create roles for authenticated users
@@ -211,31 +253,43 @@ export class FlyingMathsBackendStack extends cdk.Stack {
     updateUserProfileDS.createResolver('updateUserProfile', {
       typeName: 'Mutation',
       fieldName: 'updateUserProfile',
+      requestMappingTemplate: appsync.MappingTemplate.fromFile('mapping-templates/Mutation.updateUserProfile.js'),
+      responseMappingTemplate: appsync.MappingTemplate.fromFile('mapping-templates/Mutation.updateUserProfile.js'),
     });
 
     startGameDS.createResolver('startGame', {
       typeName: 'Mutation',
       fieldName: 'startGame',
+      requestMappingTemplate: appsync.MappingTemplate.fromFile('mapping-templates/Mutation.startGame.js'),
+      responseMappingTemplate: appsync.MappingTemplate.fromFile('mapping-templates/Mutation.startGame.js'),
     });
 
     submitChallengeDS.createResolver('submitChallenge', {
       typeName: 'Mutation',
       fieldName: 'submitChallenge',
+      requestMappingTemplate: appsync.MappingTemplate.fromFile('mapping-templates/Mutation.submitChallenge.js'),
+      responseMappingTemplate: appsync.MappingTemplate.fromFile('mapping-templates/Mutation.submitChallenge.js'),
     });
 
     endGameDS.createResolver('endGame', {
       typeName: 'Mutation',
       fieldName: 'endGame',
+      requestMappingTemplate: appsync.MappingTemplate.fromFile('mapping-templates/Mutation.endGame.js'),
+      responseMappingTemplate: appsync.MappingTemplate.fromFile('mapping-templates/Mutation.endGame.js'),
     });
 
     getGameResultDS.createResolver('getGameResult', {
       typeName: 'Query',
       fieldName: 'getGameResult',
+      requestMappingTemplate: appsync.MappingTemplate.fromFile('mapping-templates/Query.getGameResult.js'),
+      responseMappingTemplate: appsync.MappingTemplate.fromFile('mapping-templates/Query.getGameResult.js'),
     });
 
     getLeaderboardDS.createResolver('getLeaderboard', {
       typeName: 'Query',
       fieldName: 'getLeaderboard',
+      requestMappingTemplate: appsync.MappingTemplate.fromFile('mapping-templates/Query.getLeaderboard.js'),
+      responseMappingTemplate: appsync.MappingTemplate.fromFile('mapping-templates/Query.getLeaderboard.js'),
     });
 
     authenticatedRole.addToPolicy(new iam.PolicyStatement({

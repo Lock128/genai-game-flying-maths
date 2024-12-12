@@ -42,6 +42,31 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Locale _currentLocale = const Locale('de');
   bool auth = false;
+  bool isAuthenticated = false;
+  String? _userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthStatus();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    try {
+      final result = await Amplify.Auth.fetchAuthSession();
+      final cognitoResult = result as CognitoAuthSession;
+
+      setState(() {
+        isAuthenticated = result.isSignedIn;
+        if (isAuthenticated) {
+          _userId = cognitoResult.userSubResult.value;
+        }
+      });
+    } on AuthException catch (e) {
+      print('Error checking auth status: ${e.message}');
+    }
+  }
+
   void setLocale(Locale locale) {
     setState(() {
       _currentLocale = locale;
@@ -50,85 +75,55 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (auth) {
-      return Authenticator(
-        child: MaterialApp(
-          builder: Authenticator.builder(),
-          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('de'),
-            Locale('en'),
-            Locale('tr'),
-            Locale('pl'),
-            Locale('es'),
-            Locale('ar'),
-          ],
-          locale: _currentLocale,
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.blueAccent,
-              foregroundColor: Colors.white,
-              elevation: 4,
+    return MaterialApp(
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('de'),
+        Locale('en'),
+        Locale('tr'),
+        Locale('pl'),
+        Locale('es'),
+        Locale('ar'),
+      ],
+      locale: _currentLocale,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.blueAccent,
+          foregroundColor: Colors.white,
+          elevation: 4,
+        ),
+      ),
+      home: isAuthenticated
+          ? MyHomePage(
+              onLanguageChanged: setLocale,
+              isAuthenticated: isAuthenticated,
+            )
+          : Authenticator(
+              child: MyHomePage(
+                onLanguageChanged: setLocale,
+                isAuthenticated: false,
+              ),
             ),
-          ),
-          home: MyHomePage(
-            onLanguageChanged: setLocale,
-          ),
-        ),
-        onException: (p0) => {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("exception in authenticator happened"),
-            duration: const Duration(seconds: 3),
-          ))
-        },
-      );
-    } else {
-      return MaterialApp(
-        //builder: Authenticator.builder(),
-        onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('de'),
-          Locale('en'),
-          Locale('tr'),
-          Locale('pl'),
-          Locale('es'),
-          Locale('ar'),
-        ],
-        locale: _currentLocale,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.blueAccent,
-            foregroundColor: Colors.white,
-            elevation: 4,
-          ),
-        ),
-        home: MyHomePage(
-          onLanguageChanged: setLocale,
-        ),
-      );
-    }
+    );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.onLanguageChanged})
-      : super(key: key);
+  const MyHomePage({
+    Key? key,
+    required this.onLanguageChanged,
+    required this.isAuthenticated,
+  }) : super(key: key);
 
   final void Function(Locale) onLanguageChanged;
+  final bool isAuthenticated;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -149,6 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late String _currentCorrectAnswer;
   late Locale _currentLocale = Locale('de');
   List<Map<String, dynamic>> _gameResults = [];
+  bool isAuthenticated = false; // Add this line
 
   String _playerName = 'Anonymous';
   bool playerNameSet = false;
@@ -158,6 +154,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   String? _errorMessage;
+
+  String? _userId;
 
   void _showError(String message) {
     setState(() {
@@ -300,7 +298,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     _answerController.dispose();
     super.dispose();
   }
@@ -653,14 +651,53 @@ class _MyHomePageState extends State<MyHomePage> {
                           }).toList(),
                         ),
                         const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: _startGame,
-                          child: Text(AppLocalizations.of(context)!.startGame),
+                        Column(
+                          children: [
+                            ElevatedButton(
+                              onPressed: _startGame,
+                              child:
+                                  Text(AppLocalizations.of(context)!.startGame),
+                            ),
+                            if (!widget.isAuthenticated) ...[
+                              const SizedBox(height: 20),
+                              TextButton(
+                                onPressed: () async {
+                                  try {
+                                    // For Cognito hosted UI
+                                    await Amplify.Auth.signInWithWebUI();
+                                  } on AuthException catch (e) {
+                                    print('Error signing in: ${e.message}');
+                                  }
+
+                                  await _checkAuthStatus();
+                                },
+                                child: Text(
+                                    AppLocalizations.of(context)!.signIn ??
+                                        'Sign In'),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),
             ),
           )
         ]));
+  }
+
+  Future<void> _checkAuthStatus() async {
+    try {
+      final result = await Amplify.Auth.fetchAuthSession();
+      final cognitoResult = result as CognitoAuthSession;
+
+      setState(() {
+        isAuthenticated = result.isSignedIn;
+        if (isAuthenticated) {
+          _userId = cognitoResult.userSubResult.value;
+        }
+      });
+    } on AuthException catch (e) {
+      print('Error checking auth status: ${e.message}');
+    }
   }
 }
