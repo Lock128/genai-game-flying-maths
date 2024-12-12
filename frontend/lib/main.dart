@@ -41,7 +41,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Locale _currentLocale = const Locale('de');
-
+  bool auth = false;
   void setLocale(Locale locale) {
     setState(() {
       _currentLocale = locale;
@@ -50,9 +50,48 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return Authenticator(
-      child: MaterialApp(
-        builder: Authenticator.builder(),
+    if (auth) {
+      return Authenticator(
+        child: MaterialApp(
+          builder: Authenticator.builder(),
+          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('de'),
+            Locale('en'),
+            Locale('tr'),
+            Locale('pl'),
+            Locale('es'),
+            Locale('ar'),
+          ],
+          locale: _currentLocale,
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.blueAccent,
+              foregroundColor: Colors.white,
+              elevation: 4,
+            ),
+          ),
+          home: MyHomePage(
+            onLanguageChanged: setLocale,
+          ),
+        ),
+        onException: (p0) => {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("exception in authenticator happened"),
+            duration: const Duration(seconds: 3),
+          ))
+        },
+      );
+    } else {
+      return MaterialApp(
+        //builder: Authenticator.builder(),
         onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
         localizationsDelegates: const [
           AppLocalizations.delegate,
@@ -80,8 +119,8 @@ class _MyAppState extends State<MyApp> {
         home: MyHomePage(
           onLanguageChanged: setLocale,
         ),
-      ),
-    );
+      );
+    }
   }
 }
 
@@ -576,8 +615,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             style: const TextStyle(fontSize: 18)),
                         const SizedBox(height: 20),
                         GamePlayArea(
-                          question: AppLocalizations.of(context)!.problem(
-                            (_currentProblem + 1).toString()),
+                          question: AppLocalizations.of(context)!
+                              .problem((_currentProblem + 1).toString()),
                           task: _currentQuestion,
                           possibleAnswers: _currentPossibleAnswers,
                           correctAnswer: _currentCorrectAnswer,
