@@ -41,7 +41,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Locale _currentLocale = const Locale('de');
-  bool auth = false;
   void setLocale(Locale locale) {
     setState(() {
       _currentLocale = locale;
@@ -50,7 +49,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (auth) {
       return Authenticator(
         child: MaterialApp(
           builder: Authenticator.builder(),
@@ -89,38 +87,6 @@ class _MyAppState extends State<MyApp> {
           ))
         },
       );
-    } else {
-      return MaterialApp(
-        //builder: Authenticator.builder(),
-        onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('de'),
-          Locale('en'),
-          Locale('tr'),
-          Locale('pl'),
-          Locale('es'),
-          Locale('ar'),
-        ],
-        locale: _currentLocale,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.blueAccent,
-            foregroundColor: Colors.white,
-            elevation: 4,
-          ),
-        ),
-        home: MyHomePage(
-          onLanguageChanged: setLocale,
-        ),
-      );
-    }
   }
 }
 
