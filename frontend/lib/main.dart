@@ -557,13 +557,6 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
         body: Column(children: [
-          Container(
-            padding: const EdgeInsets.all(5.0),
-            child: Image.asset(
-              'web/jhs.png',
-              height: 100,
-            ),
-          ),
           Expanded(
             child: Center(
               child: _gameStarted
