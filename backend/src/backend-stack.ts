@@ -1,9 +1,11 @@
 import * as cdk from 'aws-cdk-lib';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
-import * as appsync from 'aws-cdk-lib/aws-appsync';
+import * as appsync from '@aws-cdk/aws-appsync-alpha';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as wafv2 from 'aws-cdk-lib/aws-wafv2';
+import { createUnauthenticatedRole } from './unauthenticated-role';
 
 import { Construct } from 'constructs';
 import path from 'path';
@@ -31,9 +33,9 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       generateSecret: false,
     });
 
-    // Create the Identity Pool
+    // Create the Identity Pool with unauthenticated access enabled
     const identityPool = new cognito.CfnIdentityPool(this, 'GameIdentityPool', {
-      allowUnauthenticatedIdentities: false, // Set to true if you want to support unauthorized users
+      allowUnauthenticatedIdentities: true,
       cognitoIdentityProviders: [{
         clientId: userPoolClient.userPoolClientId,
         providerName: userPool.userPoolProviderName,
@@ -55,6 +57,17 @@ export class FlyingMathsBackendStack extends cdk.Stack {
         },
         'sts:AssumeRoleWithWebIdentity'
       ),
+    });
+
+    // Create unauthenticated role
+    const unauthRole = createUnauthenticatedRole(this, identityPool.ref);
+
+    new cognito.CfnIdentityPoolRoleAttachment(this, 'IdentityPoolRoleAttachment', {
+      identityPoolId: identityPool.ref,
+      roles: {
+        'authenticated': authenticatedRole.roleArn,
+        'unauthenticated': unauthRole.roleArn,
+      },
     });
 
     // Attach the role to the identity pool
@@ -188,15 +201,52 @@ export class FlyingMathsBackendStack extends cdk.Stack {
     // AppSync API
     const api = new appsync.GraphqlApi(this, 'FlyingMathsApi', {
       name: 'flying-maths-api',
-      schema: appsync.SchemaFile.fromAsset('schema/schema.graphql'),
+      schema: appsync.Schema.fromAsset('schema/schema.graphql'),
+      xrayEnabled: true,
       authorizationConfig: {
         defaultAuthorization: {
+          authorizationType: appsync.AuthorizationType.IAM,
+        },
+        additionalAuthorizationModes: [{
           authorizationType: appsync.AuthorizationType.USER_POOL,
           userPoolConfig: {
             userPool,
           },
-        },
+        }],
       },
+    });
+
+    // Add WAF rate limiting rule
+    const wafRateRule = new wafv2.CfnWebACL(this, 'GameApiRateLimit', {
+      defaultAction: { allow: {} },
+      scope: 'REGIONAL',
+      visibilityConfig: {
+        cloudWatchMetricsEnabled: true,
+        metricName: 'GameApiRateLimit',
+        sampledRequestsEnabled: true,
+      },
+      rules: [{
+        name: 'RateLimit',
+        priority: 1,
+        statement: {
+          rateBasedStatement: {
+            limit: 100,
+            aggregateKeyType: 'IP',
+          },
+        },
+        action: { block: {} },
+        visibilityConfig: {
+          cloudWatchMetricsEnabled: true,
+          metricName: 'GameApiRateLimitRule',
+          sampledRequestsEnabled: true,
+        },
+      }],
+    });
+
+    // Associate WAF with AppSync API
+    new wafv2.CfnWebACLAssociation(this, 'GameApiWafAssociation', {
+      resourceArn: api.arn,
+      webAclArn: wafRateRule.attrArn,
     });
 
     // AppSync Datasources

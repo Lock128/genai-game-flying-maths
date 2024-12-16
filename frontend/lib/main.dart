@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flying_maths/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'models/user_state.dart';
+import 'providers/auth_provider.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_api/amplify_api.dart';
@@ -18,7 +22,16 @@ import 'utils/math_utils.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   _configureAmplify();
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserState()),
+        ChangeNotifierProvider(
+            create: (_) => FlyingMathAuthProvider()..initialize(), lazy: false),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 Future<void> _configureAmplify() async {
@@ -41,54 +54,84 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Locale _currentLocale = const Locale('de');
-  bool auth = false;
+  bool _showingAuthenticator = false;
+  @override
+  void initState() {
+    super.initState();
+    final userState =
+        Provider.of<FlyingMathAuthProvider>(context, listen: false);
+    userState.checkAuthStatus();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    if (!mounted) return;
+    final userState = Provider.of<UserState>(context, listen: false);
+    try {
+      final result = await AuthService.isAuthenticated();
+      userState.setAuthenticated(result);
+    } catch (e) {
+      print('Error checking auth status: $e');
+      userState.clearAuth();
+    }
+  }
+
   void setLocale(Locale locale) {
     setState(() {
       _currentLocale = locale;
     });
   }
 
+  void setShowingAuthenticator(bool showingAuthenticator) {
+    setState(() {
+      _showingAuthenticator = showingAuthenticator;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (auth) {
+    final isAuthenticated = context.watch<UserState>().isAuthenticated;
+    debugPrint("isAuthenticated: $isAuthenticated");
+    if (_showingAuthenticator && !isAuthenticated) {
       return Authenticator(
-        child: MaterialApp(
-          builder: Authenticator.builder(),
-          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('de'),
-            Locale('en'),
-            Locale('tr'),
-            Locale('pl'),
-            Locale('es'),
-            Locale('ar'),
-          ],
-          locale: _currentLocale,
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.blueAccent,
-              foregroundColor: Colors.white,
-              elevation: 4,
+          child: MaterialApp(
+            builder: Authenticator.builder(),
+            onGenerateTitle: (context) =>
+                AppLocalizations.of(context)!.appTitle,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('de'),
+              Locale('en'),
+              Locale('tr'),
+              Locale('pl'),
+              Locale('es'),
+              Locale('ar'),
+            ],
+            locale: _currentLocale,
+            theme: ThemeData(
+              primarySwatch: Colors.blue,
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
+                elevation: 4,
+              ),
+            ),
+            home: MyHomePage(
+              onLanguageChanged: setLocale,
+              setShowingAuthenticator: setShowingAuthenticator,
             ),
           ),
-          home: MyHomePage(
-            onLanguageChanged: setLocale,
-          ),
-        ),
-        onException: (p0) => {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("exception in authenticator happened"),
-            duration: const Duration(seconds: 3),
-          ))
-        },
-      );
+          onException: (error) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text("exception in authenticator happened"),
+              duration: const Duration(seconds: 10),
+            ));
+            setShowingAuthenticator(false);
+          });
     } else {
       return MaterialApp(
         //builder: Authenticator.builder(),
@@ -118,6 +161,7 @@ class _MyAppState extends State<MyApp> {
         ),
         home: MyHomePage(
           onLanguageChanged: setLocale,
+          setShowingAuthenticator: setShowingAuthenticator,
         ),
       );
     }
@@ -125,10 +169,15 @@ class _MyAppState extends State<MyApp> {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.onLanguageChanged})
+  const MyHomePage(
+      {Key? key,
+      required this.onLanguageChanged,
+      required this.setShowingAuthenticator})
       : super(key: key);
 
   final void Function(Locale) onLanguageChanged;
+
+  final void Function(bool) setShowingAuthenticator;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -141,7 +190,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String _currentQuestion = '';
   String _difficulty = 'medium';
   final TextEditingController _answerController = TextEditingController();
-  late Timer _timer;
+  Timer? _timer;
   int _timeLeft = 30;
   String _gameId = '';
   List<Map<String, dynamic>> _challenges = [];
@@ -152,6 +201,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String _playerName = 'Anonymous';
   bool playerNameSet = false;
+
+  late ScaffoldMessengerState _scaffoldMessenger;
+  late MediaQueryData _mediaQuery;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _scaffoldMessenger = ScaffoldMessenger.of(context);
+    _mediaQuery = MediaQuery.of(context);
+  }
+
+  @override
+  void dispose() {
+    // Use stored references instead of context
+    _timer?.cancel();
+    _answerController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -215,6 +283,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _startGame() async {
     try {
+      // Get credentials for authenticated or unauthenticated access
+      final credentials = await Amplify.Auth.fetchAuthSession(
+        options: const FetchAuthSessionOptions(forceRefresh: true),
+      );
       if (_playerName == 'Anonymous' && !playerNameSet) {
         _playerName = await _getPlayerName();
         playerNameSet = true;
@@ -276,6 +348,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _startTimer() {
+    _timer?.cancel(); // Cancel existing timer if any
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         if (_timeLeft > 0) {
@@ -284,6 +358,8 @@ class _MyHomePageState extends State<MyHomePage> {
           // When timer hits 0, submit the current answer or an empty answer if none selected
           _answerController.text =
               _answerController.text.isEmpty ? "" : _answerController.text;
+          _timer?.cancel();
+
           _checkAnswer();
         }
       });
@@ -291,18 +367,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _resetTimer() {
-    _timer.cancel();
+    _timer?.cancel();
     setState(() {
       _timeLeft = 30;
     });
     _startTimer();
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    _answerController.dispose();
-    super.dispose();
   }
 
   void _getNextProblem() {
@@ -379,7 +448,7 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
     // Stop the timer while processing the answer
-    _timer.cancel();
+    _timer?.cancel();
 
     int userAnswer = int.tryParse(_answerController.text) ?? -1;
 
@@ -438,7 +507,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _endGame() async {
-    _timer.cancel();
+    _timer?.cancel();
     // not in app notification that the game ended
     print('Game ended. Score: $_score');
 
@@ -540,6 +609,60 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.appTitle),
           actions: [
+            if (!_gameStarted)
+              if (context.watch<UserState>().isAuthenticated)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      context.watch<UserState>().userId ?? '',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ),
+            IconButton(
+                icon: Icon(context.watch<UserState>().isAuthenticated
+                    ? Icons.logout
+                    : Icons.login),
+                tooltip: context.watch<UserState>().isAuthenticated
+                    ? 'Sign Out'
+                    : 'Sign In',
+                onPressed: () async {
+                  final userState =
+                      Provider.of<UserState>(context, listen: false);
+                  debugPrint(
+                      'Clicked authenticator: ${context.read<UserState>().isAuthenticated}');
+                  if (context.read<UserState>().isAuthenticated) {
+                    try {
+                      await AuthService.signOut();
+                      userState.clearAuth();
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Successfully signed out'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error signing out: $e'),
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      }
+                      print('Error signing out: $e');
+                    }
+                  } else {
+                    if (mounted) {
+                      setState(() {
+                        widget.setShowingAuthenticator(true);
+                      });
+                    }
+                  }
+                }),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: DropdownButton<String>(

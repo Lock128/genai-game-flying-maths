@@ -149,3 +149,16 @@ You will also need to update the frontend to allow the user to to access the gam
 Please make sure that the userId of the user, if he is logged in, is stored on the backend database tables as part of this change.
 Also fix the build errors and compile issues.
 
+# allow access without a user 2nd prompt
+Right now the game requires a login with cognito to played. Please make the login optional, move the login button to the menu on the right top.
+In order to make that happen, you will need to update the Cognito Settings in the backend, the graphql schema and settings and also create an IAM role for unauthenticated access.
+Please add sensible rate-limits to the unauthenticated access to GraphQL.
+You will also need to update the frontend to allow the user to to access the game without auth - I propose that we make the unauthenticated version the default and that log in and using an account is an optional thing that you can do if you want to, so we need a button to be able to proceed without login.
+Please make sure that the userId of the user, if he is logged in, is stored on the backend database tables as part of this change.
+Also fix the build errors and compile issues.
+If you can, please add widget tests for the updated widgets.
+
+
+## refinement
+The application @workspace  does not work as expected - the "Sign In" button should show the login screen and after the user logged in it should turn to a "Sign out" button - also the use rauthentication is not saved as expected. 
+Please also add a display of the user id after the user has been logged in in the top menu

@@ -1,4 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { getUserIdentity } from '../utils';
 import { DynamoDBDocumentClient, UpdateCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({});
@@ -6,7 +7,7 @@ const dynamoDB = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event: any) => {
   const { gameId, challengeId, answer } = event.arguments;
-  const userId = event.identity.sub;
+  const { userId } = getUserIdentity(event.identity);
 
   const params = {
     TableName: process.env.GAMES_TABLE!,

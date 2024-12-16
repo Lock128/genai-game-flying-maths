@@ -1,4 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { getUserIdentity } from '../utils';
 import { DynamoDBDocumentClient, UpdateCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
 import { generateMathProblem } from './mathUtils';
@@ -12,7 +13,7 @@ const dynamoDB = DynamoDBDocumentClient.from(client);
 
 exports.handler = async (event: any) => {
   const difficulty = event.arguments.difficulty || 'medium';
-  const userId = event.identity.sub;
+  const { userId } = getUserIdentity(event.identity);
   const gameId = uuidv4();
 
   // Get user's grade from DynamoDB

@@ -9,6 +9,7 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
+  mockito: ^5.4.2
   flutter:
     sdk: flutter
   flutter_localizations:
