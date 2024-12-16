@@ -149,3 +149,8 @@ You will also need to update the frontend to allow the user to to access the gam
 Please make sure that the userId of the user, if he is logged in, is stored on the backend database tables as part of this change.
 Also fix the build errors and compile issues.
 
+# try3 prompt
+Review the whole workspace. Right now you will see that the application in "frontend" requires the user to authenticate.
+First review the code in main.dart and refactor it to put each widget into its own file.
+As a next step, change the behaviour of the application to allow the user to play the game without being authenticated.
+You will need to change the backend to allow unauthenticated access, but you also need to change the frontend to allow that.

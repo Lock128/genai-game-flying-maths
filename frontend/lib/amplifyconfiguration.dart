@@ -47,7 +47,7 @@ const amplifyconfig = ''' {
           "endpointType": "GraphQL",
           "endpoint": "https://vjkugpdmhzabzm22fucnlrfuyu.appsync-api.eu-central-1.amazonaws.com/graphql",
           "region": "eu-central-1",
-          "authorizationType": "AMAZON_COGNITO_USER_POOLS"
+          "authorizationType": "AWS_IAM"
         }
       }
     }

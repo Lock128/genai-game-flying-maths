@@ -33,7 +33,7 @@ export class FlyingMathsBackendStack extends cdk.Stack {
 
     // Create the Identity Pool
     const identityPool = new cognito.CfnIdentityPool(this, 'GameIdentityPool', {
-      allowUnauthenticatedIdentities: false, // Set to true if you want to support unauthorized users
+      allowUnauthenticatedIdentities: true, // Allow unauthenticated access for guest mode
       cognitoIdentityProviders: [{
         clientId: userPoolClient.userPoolClientId,
         providerName: userPool.userPoolProviderName,
@@ -41,7 +41,7 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       identityPoolName: 'GameIdentityPool'
     });
 
-    // Create roles for authenticated users
+    // Create roles for authenticated and unauthenticated users
     const authenticatedRole = new iam.Role(this, 'CognitoDefaultAuthenticatedRole', {
       assumedBy: new iam.FederatedPrincipal(
         'cognito-identity.amazonaws.com',
@@ -57,11 +57,41 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       ),
     });
 
-    // Attach the role to the identity pool
+    const unauthenticatedRole = new iam.Role(this, 'CognitoDefaultUnauthenticatedRole', {
+      assumedBy: new iam.FederatedPrincipal(
+        'cognito-identity.amazonaws.com',
+        {
+          StringEquals: {
+            'cognito-identity.amazonaws.com:aud': identityPool.ref,
+          },
+          'ForAnyValue:StringLike': {
+            'cognito-identity.amazonaws.com:amr': 'unauthenticated',
+          },
+        },
+        'sts:AssumeRoleWithWebIdentity'
+      ),
+    });
+
+    // Add AppSync API permissions for unauthenticated role
+    unauthenticatedRole.addToPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'appsync:GraphQL'
+      ],
+      resources: [
+        'arn:aws:appsync:*:*:apis/*/types/Query/fields/startGame',
+        'arn:aws:appsync:*:*:apis/*/types/Query/fields/getGameResult',
+        'arn:aws:appsync:*:*:apis/*/types/Mutation/fields/submitChallenge',
+        'arn:aws:appsync:*:*:apis/*/types/Mutation/fields/endGame'
+      ]
+    }));
+
+    // Attach both roles to the identity pool
     new cognito.CfnIdentityPoolRoleAttachment(this, 'IdentityPoolRoleAttachment', {
       identityPoolId: identityPool.ref,
       roles: {
         authenticated: authenticatedRole.roleArn,
+        unauthenticated: unauthenticatedRole.roleArn
       },
     });
 
@@ -191,11 +221,16 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       schema: appsync.SchemaFile.fromAsset('schema/schema.graphql'),
       authorizationConfig: {
         defaultAuthorization: {
-          authorizationType: appsync.AuthorizationType.USER_POOL,
-          userPoolConfig: {
-            userPool,
-          },
+          authorizationType: appsync.AuthorizationType.IAM,
         },
+        additionalAuthorizationModes: [
+          {
+            authorizationType: appsync.AuthorizationType.USER_POOL,
+            userPoolConfig: {
+              userPool,
+            },
+          },
+        ],
       },
     });
 
