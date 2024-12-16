@@ -17,6 +17,7 @@ export class FlyingMathsFrontendStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
+      enforceSSL: true
     });
 
     // Create CloudFront Origin Access Identity

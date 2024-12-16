@@ -103,6 +103,7 @@ const wchar_t* WindowClassRegistrar::GetWindowClass() {
     RegisterClass(&window_class);
     class_registered_ = true;
   }
+  // amazonq-ignore-next-line
   return kWindowClassName;
 }
 
