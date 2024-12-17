@@ -50,44 +50,44 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-      return Authenticator(
-        child: MaterialApp(
-          builder: Authenticator.builder(),
-          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('de'),
-            Locale('en'),
-            Locale('tr'),
-            Locale('pl'),
-            Locale('es'),
-            Locale('ar'),
-          ],
-          locale: _currentLocale,
-          theme: ThemeData(
-            primarySwatch: Colors.blue,
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.blueAccent,
-              foregroundColor: Colors.white,
-              elevation: 4,
-            ),
-          ),
-          home: MyHomePage(
-            onLanguageChanged: setLocale,
+    return Authenticator(
+      child: MaterialApp(
+        builder: Authenticator.builder(),
+        onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('de'),
+          Locale('en'),
+          Locale('tr'),
+          Locale('pl'),
+          Locale('es'),
+          Locale('ar'),
+        ],
+        locale: _currentLocale,
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.blueAccent,
+            foregroundColor: Colors.white,
+            elevation: 4,
           ),
         ),
-        onException: (p0) => {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("exception in authenticator happened"),
-            duration: const Duration(seconds: 3),
-          ))
-        },
-      );
+        home: MyHomePage(
+          onLanguageChanged: setLocale,
+        ),
+      ),
+      onException: (p0) => {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("exception in authenticator happened"),
+          duration: const Duration(seconds: 3),
+        ))
+      },
+    );
   }
 }
 
@@ -180,9 +180,22 @@ class _MyHomePageState extends State<MyHomePage> {
     return name?.trim() ?? 'Anonymous';
   }
 
+  Future<void> _fetchAuthSession() async {
+    final authSession = await Amplify.Auth.fetchAuthSession();
+    // _logger.info(
+    //   prettyPrintJson(authSession.toJson()),
+    // );
+  }
+
   Future<void> _startGame() async {
     try {
-      if (_playerName == 'Anonymous' && !playerNameSet) {
+      var authSession;
+      try {
+        authSession = await Amplify.Auth.fetchAuthSession();
+      } on AuthException catch (e) {
+        safePrint('Error fetching auth session: ${e.message}');
+      }
+      if (authSession == null && _playerName == 'Anonymous' && !playerNameSet) {
         _playerName = await _getPlayerName();
         playerNameSet = true;
       }
@@ -386,7 +399,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _answerController.clear();
 
       // Move to next problem immediately after answer is processed
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 250));
 
       if (_currentProblem < _challenges.length - 1) {
         setState(() {
@@ -472,12 +485,111 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _gameStarted = false;
     });
+    var iconButton = IconButton(
+      icon: const Icon(Icons.leaderboard),
+      onPressed: () async {
+        try {
+          final restOperation = Amplify.API.query(
+            request: GraphQLRequest<String>(
+              document: '''
+                        query GetLeaderboard {
+                          getLeaderboard(limit: 10) {
+                            playerName
+                            score
+                            completionTime
+                            date
+                          }
+                        }
+                      ''',
+            ),
+          );
 
+          final response = await restOperation.response;
+          if (response.data == null) {
+            throw Exception('No leaderboard data received');
+          }
+
+          final data = json.decode(response.data!);
+          final leaderboardData = data['getLeaderboard'] as List<dynamic>;
+
+          if (!mounted) return;
+
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => LeaderboardScreen(
+                leaderboardEntries:
+                    List<Map<String, dynamic>>.from(leaderboardData),
+                onBack: () => Navigator.of(context).pop(),
+              ),
+            ),
+          );
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to load leaderboard: ${e.toString()}'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      },
+    );
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => Scaffold(
           appBar: AppBar(
             title: Text(AppLocalizations.of(context)!.appTitle),
+            actions: [
+              iconButton,
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DropdownButton<String>(
+                  underline: const SizedBox(),
+                  icon: const Icon(Icons.language, color: Colors.white),
+                  dropdownColor: Colors.blue,
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      Locale newLocale = Locale(newValue);
+                      Localizations.override(
+                        context: context,
+                        locale: newLocale,
+                        child: widget,
+                      );
+                      setState(() {
+                        _currentLocale = newLocale;
+                      });
+                      widget.onLanguageChanged(_currentLocale);
+                    }
+                  },
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'de',
+                      child: Flag.fromCode(FlagsCode.DE, height: 20, width: 30),
+                    ),
+                    DropdownMenuItem(
+                      value: 'en',
+                      child: Flag.fromCode(FlagsCode.GB, height: 20, width: 30),
+                    ),
+                    DropdownMenuItem(
+                      value: 'tr',
+                      child: Flag.fromCode(FlagsCode.TR, height: 20, width: 30),
+                    ),
+                    DropdownMenuItem(
+                      value: 'pl',
+                      child: Flag.fromCode(FlagsCode.PL, height: 20, width: 30),
+                    ),
+                    DropdownMenuItem(
+                      value: 'es',
+                      child: Flag.fromCode(FlagsCode.ES, height: 20, width: 30),
+                    ),
+                    DropdownMenuItem(
+                      value: 'ar',
+                      child: Flag.fromCode(FlagsCode.SY, height: 20, width: 30),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             automaticallyImplyLeading: false,
           ),
           body: ResultsScreen(
@@ -502,17 +614,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.appTitle),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.leaderboard),
-              onPressed: () async {
-                try {
-                  final restOperation = Amplify.API.query(
-                    request: GraphQLRequest<String>(
-                      document: '''
+    var iconButton = IconButton(
+      icon: const Icon(Icons.leaderboard),
+      onPressed: () async {
+        try {
+          final restOperation = Amplify.API.query(
+            request: GraphQLRequest<String>(
+              document: '''
                         query GetLeaderboard {
                           getLeaderboard(limit: 10) {
                             playerName
@@ -522,38 +630,44 @@ class _MyHomePageState extends State<MyHomePage> {
                           }
                         }
                       ''',
-                    ),
-                  );
-
-                  final response = await restOperation.response;
-                  if (response.data == null) {
-                    throw Exception('No leaderboard data received');
-                  }
-
-                  final data = json.decode(response.data!);
-                  final leaderboardData = data['getLeaderboard'] as List<dynamic>;
-                  
-                  if (!mounted) return;
-                  
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => LeaderboardScreen(
-                        leaderboardEntries: List<Map<String, dynamic>>.from(leaderboardData),
-                        onBack: () => Navigator.of(context).pop(),
-                      ),
-                    ),
-                  );
-                } catch (e) {
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to load leaderboard: ${e.toString()}'),
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
-                }
-              },
             ),
+          );
+
+          final response = await restOperation.response;
+          if (response.data == null) {
+            throw Exception('No leaderboard data received');
+          }
+
+          final data = json.decode(response.data!);
+          final leaderboardData = data['getLeaderboard'] as List<dynamic>;
+
+          if (!mounted) return;
+
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => LeaderboardScreen(
+                leaderboardEntries:
+                    List<Map<String, dynamic>>.from(leaderboardData),
+                onBack: () => Navigator.of(context).pop(),
+              ),
+            ),
+          );
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to load leaderboard: ${e.toString()}'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      },
+    );
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(AppLocalizations.of(context)!.appTitle),
+          actions: [
+            iconButton,
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: DropdownButton<String>(

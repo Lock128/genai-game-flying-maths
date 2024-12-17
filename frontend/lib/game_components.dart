@@ -68,8 +68,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
       animation: _animation,
       builder: (context, child) {
         final screenWidth = MediaQuery.of(context).size.width;
-        //print("widget.index: ${widget.index} -> ${widget.answer} | animation.value: ${_animation.value} | widget.left: ${screenWidth * _animation.value} | widget.top: ${50.0 + (widget.index * 20.0)}");
-
+        
         return Positioned(
           // Calculate position based on screen width
           left: (screenWidth * _animation.value),
@@ -184,8 +183,8 @@ class _GamePlayAreaState extends State<GamePlayArea> {
   @override
   Widget build(BuildContext context) {
     //print question
-    print(
-        "build _GamePlayAreaState - question: ${widget.question} | answer: ${widget.correctAnswer} | possible: ${widget.possibleAnswers}");
+    // print(
+    //     "build _GamePlayAreaState - question: ${widget.question} | answer: ${widget.correctAnswer} | possible: ${widget.possibleAnswers}");
 
     if (!widget.possibleAnswers.contains(widget.correctAnswer)) {
       throw Exception("Correct answer not in possible answers");
