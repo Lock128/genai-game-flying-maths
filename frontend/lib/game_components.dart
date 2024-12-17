@@ -98,8 +98,8 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
                       _isCorrectAnswer == null 
                           ? Colors.blue.shade500
                           : _isCorrectAnswer! 
-                              ? Colors.green.shade500
-                              : Colors.red.shade500,
+                              ? Colors.green
+                              : Colors.red,
                     ),
                   ),
                   Container(
