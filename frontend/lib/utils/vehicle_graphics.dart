@@ -34,6 +34,7 @@ class HelicopterPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
       ..color = color
+      ..strokeWidth = 2.0
       ..style = PaintingStyle.fill;
 
     // Cabin
@@ -94,6 +95,7 @@ class AirplanePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
       ..color = color
+      ..strokeWidth = 2.0
       ..style = PaintingStyle.fill;
 
     // Fuselage
@@ -158,6 +160,7 @@ class BirdPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
       ..color = color
+      ..strokeWidth = 2.0
       ..style = PaintingStyle.fill;
 
     // Body

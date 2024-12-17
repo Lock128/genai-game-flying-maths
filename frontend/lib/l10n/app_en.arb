@@ -16,6 +16,7 @@
     "easy": "Easy",
     "medium": "Medium",
     "hard": "Hard",
+    "leaderboard": "Leaderboard",
     "startGame": "Start Game",
     "problem": "Task {number}:",
     "home": "Change difficulty",

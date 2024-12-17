@@ -156,3 +156,8 @@ right now the boxes that contain the possible results are just boxes. can you ma
 Can you introduce a leaderboard functionality to the app?
 It should call out the user name, the score, the date of the score and the speed of the user?
 For that you will need to update the backend table to actually store the leaderboard information and also add a new page on the frontend. please add a link to the leaderbot on the top. The leaderboard also needs a link to go back to the start page.
+
+# fixes to red/green
+Please start again from scratch and forget your last try on this task.
+after clicking on the answer the widget does not doesnt work correctly as the items are not turning red or green depending on their answer status.
+Can you also ensure that the items are changed to look to the other side and make the color of the text on them visible (as an example black)

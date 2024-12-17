@@ -9,6 +9,7 @@ import 'dart:math' as math;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flag/flag.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flying_maths/leaderboard_screen.dart';
 
 import 'amplifyconfiguration.dart';
 import 'game_components.dart';
@@ -342,12 +343,11 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _checkAnswer() async {
     if (_answerController.text.isEmpty) {
       _showError(AppLocalizations.of(context)!.selectAnswer);
-      return;
     }
     // Stop the timer while processing the answer
     _timer.cancel();
 
-    int userAnswer = int.tryParse(_answerController.text) ?? -1;
+    int userAnswer = int.tryParse(_answerController.text) ?? -10000;
 
     try {
       // Get the current challenge ID from the challenges array using the currentProblem index

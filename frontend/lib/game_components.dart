@@ -37,7 +37,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
 
     // Initialize the vehicle type
     _vehicleType = VehicleGraphics.getRandomVehicle();
-    
+
     // Initialize the animation controller
     _controller = AnimationController(
       duration:
@@ -79,11 +79,11 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
             child: GestureDetector(
               onTap: () {
                 if (!_isStopped) {
+                  _controller.stop();
                   setState(() {
                     _isStopped = true;
                     _isCorrectAnswer = widget.isCorrect;
                   });
-                  _controller.stop();
                   widget.onTap();
                 }
               },
@@ -92,15 +92,20 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
                   Container(
                     width: 180,
                     height: 55,
-                    child: VehicleGraphics.buildVehicleGraphic(
-                      _vehicleType,
-                      const Size(180, 55),
-                      _isCorrectAnswer == null 
-                          ? Colors.blue.shade500
-                          : _isCorrectAnswer! 
-                              ? Colors.green
-                              : Colors.red,
-                    ),
+                    child: Transform.scale(
+                        scaleX: _animation.value < 0.5 ? 1 : -1,
+                        child: Transform.flip(
+                          flipX: true,
+                          child: VehicleGraphics.buildVehicleGraphic(
+                            _vehicleType,
+                            const Size(180, 55),
+                            _isCorrectAnswer == null
+                                ? Colors.blue.shade500
+                                : _isCorrectAnswer!
+                                    ? Colors.green.shade600
+                                    : Colors.red.shade600,
+                          ),
+                        )),
                   ),
                   Container(
                     width: 180,
@@ -109,7 +114,7 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
                       child: Text(
                         widget.answer,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Colors.black,
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
