@@ -149,3 +149,10 @@ You will also need to update the frontend to allow the user to to access the gam
 Please make sure that the userId of the user, if he is logged in, is stored on the backend database tables as part of this change.
 Also fix the build errors and compile issues.
 
+# changing the boxes
+right now the boxes that contain the possible results are just boxes. can you make them look like helicopters, airplanes or birds - the choice of the graphic used should be random when a new game is starting ;)
+
+# adding a leaderboard
+Can you introduce a leaderboard functionality to the app?
+It should call out the user name, the score, the date of the score and the speed of the user?
+For that you will need to update the backend table to actually store the leaderboard information and also add a new page on the frontend. please add a link to the leaderbot on the top. The leaderboard also needs a link to go back to the start page.

@@ -25,6 +25,8 @@ type GameResult {
   totalChallenges: Int!
   correctAnswers: Int!
   completionTime: Int
+  playerName: String
+  date: AWSDateTime!
 }
 
 input UpdateUserProfileInput {

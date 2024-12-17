@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'utils/vehicle_graphics.dart';
 
 class AnimatedAnswerBox extends StatefulWidget {
   final String answer;
@@ -28,11 +29,15 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
   bool _isVisible = false;
   bool _isStopped = false;
   bool? _isCorrectAnswer;
+  late final VehicleType _vehicleType;
 
   @override
   void initState() {
     super.initState();
 
+    // Initialize the vehicle type
+    _vehicleType = VehicleGraphics.getRandomVehicle();
+    
     // Initialize the animation controller
     _controller = AnimationController(
       duration:
@@ -82,39 +87,37 @@ class _AnimatedAnswerBoxState extends State<AnimatedAnswerBox>
                   widget.onTap();
                 }
               },
-              child: Container(
-                width: 180,
-                height: 55,
-                decoration: BoxDecoration(
-                  color: _isCorrectAnswer == null 
-                      ? Colors.blue.shade500
-                      : _isCorrectAnswer! 
-                          ? Colors.green.shade500
-                          : Colors.red.shade500,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.white,
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(2, 2),
+              child: Stack(
+                children: [
+                  Container(
+                    width: 180,
+                    height: 55,
+                    child: VehicleGraphics.buildVehicleGraphic(
+                      _vehicleType,
+                      const Size(180, 55),
+                      _isCorrectAnswer == null 
+                          ? Colors.blue.shade500
+                          : _isCorrectAnswer! 
+                              ? Colors.green.shade500
+                              : Colors.red.shade500,
                     ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    widget.answer,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
+                  Container(
+                    width: 180,
+                    height: 55,
+                    child: Center(
+                      child: Text(
+                        widget.answer,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

@@ -506,6 +506,54 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.appTitle),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.leaderboard),
+              onPressed: () async {
+                try {
+                  final restOperation = Amplify.API.query(
+                    request: GraphQLRequest<String>(
+                      document: '''
+                        query GetLeaderboard {
+                          getLeaderboard(limit: 10) {
+                            playerName
+                            score
+                            completionTime
+                            date
+                          }
+                        }
+                      ''',
+                    ),
+                  );
+
+                  final response = await restOperation.response;
+                  if (response.data == null) {
+                    throw Exception('No leaderboard data received');
+                  }
+
+                  final data = json.decode(response.data!);
+                  final leaderboardData = data['getLeaderboard'] as List<dynamic>;
+                  
+                  if (!mounted) return;
+                  
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => LeaderboardScreen(
+                        leaderboardEntries: List<Map<String, dynamic>>.from(leaderboardData),
+                        onBack: () => Navigator.of(context).pop(),
+                      ),
+                    ),
+                  );
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to load leaderboard: ${e.toString()}'),
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
+              },
+            ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: DropdownButton<String>(
