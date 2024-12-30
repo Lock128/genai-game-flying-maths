@@ -7,10 +7,10 @@ class LeaderboardScreen extends StatelessWidget {
   final List<Map<String, dynamic>> leaderboardEntries;
 
   const LeaderboardScreen({
-    Key? key,
+    super.key,
     required this.onBack,
     required this.leaderboardEntries,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

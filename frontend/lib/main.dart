@@ -92,8 +92,7 @@ class _MyAppState extends State<MyApp> {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.onLanguageChanged})
-      : super(key: key);
+  const MyHomePage({super.key, required this.onLanguageChanged});
 
   final void Function(Locale) onLanguageChanged;
 
@@ -189,7 +188,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _startGame() async {
     try {
-      var authSession;
+      AuthSession? authSession;
       try {
         authSession = await Amplify.Auth.fetchAuthSession();
       } on AuthException catch (e) {
@@ -299,7 +298,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<String> _generatePossibleAnswers() {
     // Calculate correct answer
-    print("Generating possible answers for ${_currentQuestion}");
+    print("Generating possible answers for $_currentQuestion");
     String correctAnswer = _currentCorrectAnswer;
     int correct = int.parse(correctAnswer);
     print("Correct answer: $correctAnswer");
