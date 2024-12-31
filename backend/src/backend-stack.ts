@@ -249,12 +249,6 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       ],
     }));
 
-    // Add getLeaderboard Lambda data source and resolver
-    getLeaderboardDS.createResolver('GetLeaderboardResolver', {
-      typeName: 'Query',
-      fieldName: 'getLeaderboard',
-    });
-
     new cdk.CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
     new cdk.CfnOutput(this, 'UserPoolClientId', { value: userPoolClient.userPoolClientId });
     new cdk.CfnOutput(this, 'GraphQLApiUrl', { value: api.graphqlUrl });
