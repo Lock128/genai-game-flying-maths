@@ -29,6 +29,13 @@ type GameResult {
   date: AWSDateTime!
 }
 
+type LeaderboardEntry {
+  playerName: String
+  score: Int!
+  completionTime: Int!
+  date: AWSDateTime!
+}
+
 input UpdateUserProfileInput {
   language: String
   grade: Int
@@ -44,7 +51,7 @@ type Mutation {
 type Query {
   getUser: User!
   getGameResult(gameId: ID!): GameResult!
-  getLeaderboard(limit: Int): [GameResult!]!
+  getLeaderboard(limit: Int): [LeaderboardEntry!]!
 }
 
 schema {

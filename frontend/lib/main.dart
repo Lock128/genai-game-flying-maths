@@ -28,6 +28,7 @@ Future<void> _configureAmplify() async {
     final auth = AmplifyAuthCognito();
     await Amplify.addPlugins([api, auth]);
     await Amplify.configure(amplifyconfig);
+    print('Successfully configured Amplify');
   } catch (e) {
     print('An error occurred while configuring Amplify: $e');
   }
@@ -51,43 +52,36 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Authenticator(
-      child: MaterialApp(
-        builder: Authenticator.builder(),
-        onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('de'),
-          Locale('en'),
-          Locale('tr'),
-          Locale('pl'),
-          Locale('es'),
-          Locale('ar'),
-        ],
-        locale: _currentLocale,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.blueAccent,
-            foregroundColor: Colors.white,
-            elevation: 4,
-          ),
-        ),
-        home: MyHomePage(
-          onLanguageChanged: setLocale,
+        child: MaterialApp(
+      builder: Authenticator.builder(),
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('de'),
+        Locale('en'),
+        Locale('tr'),
+        Locale('pl'),
+        Locale('es'),
+        Locale('ar'),
+      ],
+      locale: _currentLocale,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.blueAccent,
+          foregroundColor: Colors.white,
+          elevation: 4,
         ),
       ),
-      onException: (p0) => {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("exception in authenticator happened"),
-          duration: const Duration(seconds: 3),
-        ))
-      },
-    );
+      home: MyHomePage(
+        onLanguageChanged: setLocale,
+      ),
+    ));
   }
 }
 
@@ -106,6 +100,30 @@ class _MyHomePageState extends State<MyHomePage> {
   int _score = 0;
   String _currentQuestion = '';
   String _difficulty = 'medium';
+  String _currentUsername = 'Guest';
+  bool _isAuthenticated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkCurrentUser();
+  }
+
+  Future<void> _checkCurrentUser() async {
+    try {
+      final result = await Amplify.Auth.getCurrentUser();
+      setState(() {
+        _currentUsername = result.userId;
+        _isAuthenticated = true;
+      });
+    } catch (e) {
+      setState(() {
+        _currentUsername = 'Guest';
+        _isAuthenticated = false;
+      });
+    }
+  }
+
   final TextEditingController _answerController = TextEditingController();
   late Timer _timer;
   int _timeLeft = 30;
@@ -118,10 +136,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String _playerName = 'Anonymous';
   bool playerNameSet = false;
-  @override
-  void initState() {
-    super.initState();
-  }
 
   String? _errorMessage;
 
@@ -666,6 +680,43 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.appTitle),
           actions: [
+            if (!_isAuthenticated)
+              IconButton(
+                icon: const Icon(Icons.login),
+                onPressed: () async {
+                  try {
+                    await Amplify.Auth.signInWithWebUI(
+                        provider: AuthProvider.cognito);
+                    await _checkCurrentUser();
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error signing in: ${e.toString()}'),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                },
+              ),
+            if (_isAuthenticated)
+              IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: () async {
+                  try {
+                    await Amplify.Auth.signOut();
+                    await _checkCurrentUser();
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error signing out: ${e.toString()}'),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                },
+              ),
             iconButton,
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -718,6 +769,13 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
         body: Column(children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'Welcome, $_currentUsername',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
           Expanded(
             child: Center(
               child: _gameStarted
