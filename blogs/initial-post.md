@@ -6,6 +6,10 @@ The game that I'm contributing to this "AWS Game Builder Challenge" in early 202
 
 TBD
 
+## Where and how can I play the game?
+
+TBD
+
 ## Which AWS services have been used?
 
 TBD
@@ -19,12 +23,25 @@ TBD
 TBD
 
 ### It all starts with a prompt!
+
 TBD
 
 ### Architecture diagrams
 
 TBD
 
+### Additional personal challenges
+
+TBD
+
 ### Used technologies and tools
+
+TBD
+
+## Gameplay!
+
+TBD
+
+## Not yet good enough for being used in schools :-)
 
 TBD

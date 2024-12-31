@@ -249,14 +249,8 @@ export class FlyingMathsBackendStack extends cdk.Stack {
       ],
     }));
 
-    // Output
     // Add getLeaderboard Lambda data source and resolver
-    const getLeaderboardDataSource = api.addLambdaDataSource(
-      'GetLeaderboardDataSource',
-      getLeaderboardLambda
-    );
-
-    getLeaderboardDataSource.createResolver('GetLeaderboardResolver', {
+    getLeaderboardDS.createResolver('GetLeaderboardResolver', {
       typeName: 'Query',
       fieldName: 'getLeaderboard',
     });
