@@ -1,12 +1,17 @@
 # Helping kids to practice math with a new coding language to reach Web, iOS, Android and other platforms
 
 The game that I'm contributing to this "AWS Game Builder Challenge" in early 2025 is inspired by my family, especially by wife, who is a teacher in primary school in Germany. Finally I was able to also resolve an outstanding item from my bucket list that I've had since 2019!
+Wanna konw which one? Keep reading!
 
 ## What's the game about?
 
 TBD
 
 ## Where and how can I play the game?
+
+TBD
+
+### How can I submit feedback, ideas, comments?
 
 TBD
 

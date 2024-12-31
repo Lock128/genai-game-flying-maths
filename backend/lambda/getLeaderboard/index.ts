@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 const client = new DynamoDBClient({});
 const dynamoDB = DynamoDBDocumentClient.from(client);
 
-const TABLE_NAME = process.env.GAME_RESULTS_TABLE;
+const TABLE_NAME = process.env.LEADERBOARD_TABLE!;
 
 exports.handler = async (event: any) => {
   console.log('Event:', JSON.stringify(event, null, 2));
