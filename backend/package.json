@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.2",
-    "@types/node": "^22.9.3",
+    "@types/node": "^22.10.5",
     "@types/uuid": "^8.3.4",
     "aws-cdk": "^2.173.4",
     "aws-sdk-client-mock": "^4.1.0",
