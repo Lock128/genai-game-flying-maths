@@ -12,7 +12,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.716.0",
     "@aws-sdk/lib-dynamodb": "^3.0.0",
-    "aws-cdk-lib": "^2.173.4",
+    "aws-cdk-lib": "^2.175.1",
     "constructs": "^10.2.52",
     "uuid": "^11.0.3"
   },
